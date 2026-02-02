@@ -1,3 +1,4 @@
+using System.Linq;
 using NikahSalon.Application.Interfaces;
 using NikahSalon.Domain.Enums;
 
@@ -8,15 +9,18 @@ public sealed class GetCenterDetailQueryHandler
     private readonly ICenterRepository _centerRepository;
     private readonly IWeddingHallRepository _hallRepository;
     private readonly IScheduleRepository _scheduleRepository;
+    private readonly IHallAccessRepository _hallAccessRepository;
 
     public GetCenterDetailQueryHandler(
         ICenterRepository centerRepository,
         IWeddingHallRepository hallRepository,
-        IScheduleRepository scheduleRepository)
+        IScheduleRepository scheduleRepository,
+        IHallAccessRepository hallAccessRepository)
     {
         _centerRepository = centerRepository;
         _hallRepository = hallRepository;
         _scheduleRepository = scheduleRepository;
+        _hallAccessRepository = hallAccessRepository;
     }
 
     public async Task<CenterDetailDto?> HandleAsync(GetCenterDetailQuery query, CancellationToken ct = default)
@@ -24,13 +28,32 @@ public sealed class GetCenterDetailQueryHandler
         var center = await _centerRepository.GetByIdAsync(query.Id, ct);
         if (center is null) return null;
 
-        // Bu merkeze ait tüm salonları getir
-        var allHalls = await _hallRepository.GetAllAsync(ct);
-        var centerHalls = allHalls.Where(h => h.CenterId == center.Id).ToList();
+        // Bu merkeze ait salonları getir
+        var centerHallsList = (await _hallRepository.GetByCenterIdAsync(center.Id, ct)).ToList();
+        
+        // SuperAdmin ve Viewer tüm salonları görebilir, Editor sadece erişimi olan salonları görebilir
+        if (query.CallerRole == "Editor" && query.CallerUserId.HasValue)
+        {
+            // Editor ise sadece erişimi olan salonları görebilir
+            var accessibleHallIds = await _hallAccessRepository.GetAccessibleHallIdsAsync(query.CallerUserId.Value, ct);
+            var accessibleSet = accessibleHallIds.ToHashSet();
+            
+            // Bu merkeze erişimi var mı kontrol et
+            var hasAccess = centerHallsList.Any(h => accessibleSet.Contains(h.Id));
+            if (!hasAccess)
+            {
+                // Erişim yoksa null döndür
+                return null;
+            }
+            
+            // Sadece erişimi olan salonları filtrele
+            centerHallsList = centerHallsList.Where(h => accessibleSet.Contains(h.Id)).ToList();
+        }
+        // SuperAdmin ve Viewer için tüm salonları göster (filtreleme yok)
 
         // Her salon için schedule'ları getir
         var hallsWithSchedules = new List<HallWithSchedulesDto>();
-        foreach (var hall in centerHalls)
+        foreach (var hall in centerHallsList)
         {
             var schedules = await _scheduleRepository.GetByHallIdAsync(hall.Id, ct);
             hallsWithSchedules.Add(new HallWithSchedulesDto

@@ -48,7 +48,14 @@ public sealed class HallsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken ct)
     {
-        var query = new GetHallsQuery();
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var roleClaim = User.FindFirstValue(ClaimTypes.Role);
+        
+        var query = new GetHallsQuery
+        {
+            CallerUserId = Guid.TryParse(userIdClaim, out var userId) ? userId : null,
+            CallerRole = roleClaim
+        };
         var items = await _getHallsHandler.HandleAsync(query, ct);
         return Ok(items);
     }

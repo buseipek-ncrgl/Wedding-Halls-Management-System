@@ -172,16 +172,13 @@ public sealed class UserRepository : IUserRepository
             user.Phone = string.IsNullOrWhiteSpace(phone) ? null : phone;
         }
 
-        // Update department if provided
+        // Update department only if explicitly provided (HasValue)
+        // If department is null, keep the existing value (don't clear it)
         if (department.HasValue)
         {
             user.Department = department.Value;
         }
-        else if (department == null && user.Department.HasValue)
-        {
-            // Explicitly set to null if department is being cleared
-            user.Department = null;
-        }
+        // If department is null, we don't update it - preserve existing value
 
         var updateResult = await _userManager.UpdateAsync(user);
         if (!updateResult.Succeeded)

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NikahSalon.Application.Centers.CreateCenter;
@@ -41,7 +42,14 @@ public sealed class CentersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken ct)
     {
-        var query = new GetCentersQuery();
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var roleClaim = User.FindFirstValue(ClaimTypes.Role);
+        
+        var query = new GetCentersQuery
+        {
+            CallerUserId = Guid.TryParse(userIdClaim, out var userId) ? userId : null,
+            CallerRole = roleClaim
+        };
         var centers = await _getCentersHandler.HandleAsync(query, ct);
         return Ok(centers);
     }
@@ -51,7 +59,15 @@ public sealed class CentersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
-        var query = new GetCenterByIdQuery { Id = id };
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var roleClaim = User.FindFirstValue(ClaimTypes.Role);
+        
+        var query = new GetCenterByIdQuery
+        {
+            Id = id,
+            CallerUserId = Guid.TryParse(userIdClaim, out var userId) ? userId : null,
+            CallerRole = roleClaim
+        };
         var center = await _getByIdHandler.HandleAsync(query, ct);
         if (center is null) return NotFound();
         return Ok(center);
@@ -62,7 +78,15 @@ public sealed class CentersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetDetail(Guid id, CancellationToken ct)
     {
-        var query = new GetCenterDetailQuery { Id = id };
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var roleClaim = User.FindFirstValue(ClaimTypes.Role);
+        
+        var query = new GetCenterDetailQuery
+        {
+            Id = id,
+            CallerUserId = Guid.TryParse(userIdClaim, out var userId) ? userId : null,
+            CallerRole = roleClaim
+        };
         var detail = await _getDetailHandler.HandleAsync(query, ct);
         if (detail is null) return NotFound();
         return Ok(detail);
