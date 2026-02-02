@@ -650,7 +650,7 @@ export function CalendarView() {
             <Button
               variant="outline"
               size="sm"
-              className="mt-4 w-full bg-transparent"
+              className="mt-2 sm:mt-4 w-full bg-transparent text-[10px] sm:text-xs h-7 sm:h-8"
               onClick={() => {
                 setSelectedDate(new Date());
                 setCurrentDate(new Date());
@@ -658,18 +658,18 @@ export function CalendarView() {
             >
               Bugüne Git
             </Button>
-            <div className="mt-4 space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">
+            <div className="mt-2 sm:mt-4 space-y-1 sm:space-y-2">
+              <p className="text-[10px] sm:text-xs font-medium text-muted-foreground">
                 Renk Kodları
               </p>
-              <div className="flex flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-full bg-green-500" />
-                  <span className="text-xs text-muted-foreground">Müsait</span>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-green-500 shrink-0" />
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">Müsait</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-full bg-red-500" />
-                  <span className="text-xs text-muted-foreground">Dolu</span>
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-red-500 shrink-0" />
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">Dolu</span>
                 </div>
               </div>
             </div>
@@ -677,22 +677,23 @@ export function CalendarView() {
         </Card>
 
         {/* Schedule Grid */}
-        <Card className="border-border bg-card lg:col-span-2">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold text-foreground">
+        <Card className="border-border bg-card lg:col-span-2 w-full max-w-full overflow-hidden">
+          <CardHeader className="pb-2 px-2 sm:px-3 md:px-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 sm:gap-2">
+              <CardTitle className="text-xs sm:text-sm md:text-base font-semibold text-foreground truncate min-w-0 flex-1">
                 {viewMode === "week" && selectedDate ? (
-                  `Hafta Görünümü - ${selectedDate.getDate()} ${monthNames[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`
+                  `Hafta - ${selectedDate.getDate()} ${monthNames[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`
                 ) : selectedDate ? (
                   `${selectedDate.getDate()} ${monthNames[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`
                 ) : (
                   "Tarih Seçin"
                 )}
               </CardTitle>
-              <div className="flex gap-2">
+              <div className="flex gap-0.5 sm:gap-1 md:gap-2 shrink-0">
                 <Button
                   variant={viewMode === "day" ? "secondary" : "ghost"}
                   size="sm"
+                  className="h-6 sm:h-7 md:h-8 text-[10px] sm:text-xs px-1.5 sm:px-2 md:px-3"
                   onClick={() => setViewMode("day")}
                 >
                   Gün
@@ -700,6 +701,7 @@ export function CalendarView() {
                 <Button
                   variant={viewMode === "week" ? "secondary" : "ghost"}
                   size="sm"
+                  className="h-6 sm:h-7 md:h-8 text-[10px] sm:text-xs px-1.5 sm:px-2 md:px-3"
                   onClick={() => setViewMode("week")}
                 >
                   Hafta
@@ -707,13 +709,13 @@ export function CalendarView() {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto -mx-4 sm:mx-0">
-              <div className="inline-block min-w-full align-middle">
-                <table className="w-full min-w-[500px]">
+          <CardContent className="px-1 sm:px-3 md:px-6">
+            <div className="overflow-x-auto -mx-1 sm:-mx-3 md:-mx-6 sm:mx-0 w-full max-w-full">
+              <div className="inline-block min-w-full align-middle px-0 max-w-full">
+                <table className="w-full min-w-[300px] sm:min-w-[400px] md:min-w-[500px] max-w-full table-fixed">
                   <thead>
                     <tr>
-                      <th className="sticky left-0 z-10 bg-card p-1.5 sm:p-2 text-left text-[10px] sm:text-xs font-medium text-muted-foreground min-w-[140px] sm:min-w-[180px] w-[140px] sm:w-[180px]">
+                      <th className="sticky left-0 z-10 bg-card p-0.5 sm:p-1 md:p-1.5 lg:p-2 text-left text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs font-medium text-muted-foreground min-w-[70px] sm:min-w-[80px] md:min-w-[95px] lg:min-w-[130px] w-[70px] sm:w-[80px] md:w-[95px] lg:w-[130px] whitespace-nowrap border-r border-border">
                         Salon
                       </th>
                       {viewMode === "week" && weekDays.length > 0 ? (
@@ -721,17 +723,17 @@ export function CalendarView() {
                         weekDays.map((day) => (
                           <th
                             key={day.date}
-                            className="p-1 sm:p-1.5 md:p-2 text-center text-[9px] sm:text-[10px] md:text-xs font-medium text-muted-foreground min-w-[80px] sm:min-w-[100px]"
+                            className="p-0.5 sm:p-1 md:p-1.5 text-center text-[7px] sm:text-[8px] md:text-[9px] lg:text-xs font-medium text-muted-foreground min-w-[35px] sm:min-w-[40px] md:min-w-[50px] lg:min-w-[65px]"
                           >
                             <div className="flex flex-col items-center gap-0.5">
                               <span className={cn(
-                                "text-[9px] sm:text-[10px] font-medium",
+                                "text-[8px] sm:text-[9px] md:text-[10px] font-medium",
                                 day.isToday && "text-primary font-bold"
                               )}>
                                 {daysOfWeek[day.dayOfWeek]}
                               </span>
                               <span className={cn(
-                                "text-[10px] sm:text-xs text-muted-foreground",
+                                "text-[8px] sm:text-[9px] md:text-[10px] text-muted-foreground",
                                 day.isToday && "text-primary font-bold"
                               )}>
                                 {day.displayDate}
@@ -744,7 +746,7 @@ export function CalendarView() {
                         SLOTS.map((slot) => (
                           <th
                             key={slot}
-                            className="p-1.5 sm:p-2 text-center text-[10px] sm:text-xs font-medium text-muted-foreground"
+                            className="p-0.5 sm:p-1 md:p-1.5 lg:p-2 text-center text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs font-medium text-muted-foreground min-w-[38px] sm:min-w-[42px] md:min-w-[50px] lg:min-w-[60px]"
                           >
                             {slot}
                           </th>
@@ -759,12 +761,14 @@ export function CalendarView() {
                         <Fragment key={`center-group-${center.id}`}>
                           {/* Merkez başlık satırı */}
                           <tr className="border-t-2 border-primary bg-primary/5">
-                            <td colSpan={viewMode === "week" ? weekDays.length + 1 : SLOTS.length + 1} className="p-2 sm:p-3">
-                              <div className="flex items-center gap-2">
-                                <Building2 className="h-4 w-4 text-primary" />
-                                <span className="text-sm sm:text-base font-semibold text-foreground">{center.name}</span>
-                                <Badge variant="secondary" className="ml-auto">
-                                  {centerHalls.length} Salon
+                            <td colSpan={viewMode === "week" ? weekDays.length + 1 : SLOTS.length + 1} className="p-1 sm:p-1.5 md:p-2 lg:p-3">
+                              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-1.5 md:gap-2 min-w-0">
+                                <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 flex-1">
+                                  <Building2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-primary shrink-0" />
+                                  <span className="text-[9px] sm:text-[10px] md:text-xs lg:text-sm font-semibold text-foreground break-words min-w-0 flex-1 leading-tight line-clamp-2" title={center.name}>{center.name}</span>
+                                </div>
+                                <Badge variant="secondary" className="sm:ml-auto shrink-0 text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs px-1 sm:px-1.5 md:px-2 whitespace-nowrap self-start sm:self-center">
+                                  {centerHalls.length} Sa
                                 </Badge>
                               </div>
                             </td>
@@ -772,11 +776,11 @@ export function CalendarView() {
                           {/* Bu merkeze ait salonlar */}
                           {centerHalls.map((hall) => (
                             <tr key={hall.id} className="border-t border-border">
-                              <td className="sticky left-0 z-10 bg-card p-1.5 sm:p-2 min-w-[140px] sm:min-w-[180px] w-[140px] sm:w-[180px]">
+                              <td className="sticky left-0 z-10 bg-card p-0.5 sm:p-1 md:p-1.5 lg:p-2 min-w-[70px] sm:min-w-[80px] md:min-w-[95px] lg:min-w-[130px] w-[70px] sm:w-[80px] md:w-[95px] lg:w-[130px] border-r border-border">
                                 <button
                                   type="button"
                                   onClick={() => router.push(`/dashboard/${hall.id}`)}
-                                  className="text-left text-xs sm:text-sm font-medium text-foreground hover:text-primary break-words w-full"
+                                  className="text-left text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs xl:text-sm font-medium text-foreground hover:text-primary break-words w-full line-clamp-2 leading-tight"
                                   title={hall.name}
                                 >
                                   {hall.name}
@@ -785,8 +789,8 @@ export function CalendarView() {
                               {viewMode === "week" && weekDays.length > 0 ? (
                                 // Hafta görünümü: Her gün için saatler
                                 weekDays.map((day) => (
-                                  <td key={day.date} className="p-1 sm:p-1.5 md:p-2 align-top">
-                                    <div className="space-y-1">
+                                  <td key={day.date} className="p-0.5 sm:p-1 md:p-1.5 align-top">
+                                    <div className="space-y-0.5 sm:space-y-1">
                                       {SLOTS.map((slot) => {
                                         const slotInfo = getSlotStatus(hall.id, slot, day.date);
                                         const isBooked = slotInfo.status === "booked";
@@ -794,7 +798,7 @@ export function CalendarView() {
                                           <div
                                             key={slot}
                                             className={cn(
-                                              "flex items-center justify-center rounded-md px-1 py-0.5 text-[7px] sm:text-[8px] font-medium transition-colors",
+                                              "flex items-center justify-center rounded-md px-0.5 py-0.5 text-[6px] sm:text-[7px] md:text-[8px] font-medium transition-colors w-full min-h-[12px] sm:min-h-[14px] md:min-h-[16px]",
                                               !isBooked &&
                                                 "bg-green-100 text-green-700",
                                               isBooked &&
@@ -809,15 +813,15 @@ export function CalendarView() {
                                             }
                                           >
                                             {isBooked && slotInfo.eventName ? (
-                                              <span className="truncate max-w-[60px] sm:max-w-[80px]">
-                                                {slotInfo.eventName.length > 8
-                                                  ? slotInfo.eventName.substring(0, 6) + "..."
+                                              <span className="truncate max-w-[28px] sm:max-w-[35px] md:max-w-[45px]">
+                                                {slotInfo.eventName.length > 2
+                                                  ? slotInfo.eventName.substring(0, 1) + "..."
                                                   : slotInfo.eventName}
                                               </span>
                                             ) : isBooked ? (
-                                              <span className="opacity-70">D</span>
+                                              <span className="opacity-70 text-[6px] sm:text-[7px] md:text-[8px]">D</span>
                                             ) : (
-                                              <span className="opacity-50">M</span>
+                                              <span className="opacity-50 text-[6px] sm:text-[7px] md:text-[8px]">M</span>
                                             )}
                                           </div>
                                         );
@@ -839,7 +843,7 @@ export function CalendarView() {
                                           router.push(`/dashboard/${hall.id}`)
                                         }
                                         className={cn(
-                                          "mx-auto flex min-h-[36px] sm:min-h-[48px] w-full max-w-[70px] sm:max-w-[90px] items-center justify-center rounded-md px-0.5 sm:px-1.5 py-0.5 sm:py-1.5 text-[8px] sm:text-[10px] font-medium leading-tight transition-colors",
+                                          "mx-auto flex min-h-[22px] sm:min-h-[26px] md:min-h-[30px] lg:min-h-[38px] w-full max-w-[36px] sm:max-w-[40px] md:max-w-[48px] lg:max-w-[58px] items-center justify-center rounded-md px-0.5 sm:px-1 md:px-1.5 py-0.5 sm:py-1 md:py-1.5 text-[7px] sm:text-[8px] md:text-[9px] lg:text-[10px] font-medium leading-tight transition-colors",
                                           !isBooked &&
                                             "bg-green-100 hover:bg-green-200 cursor-pointer",
                                           isBooked &&
@@ -856,22 +860,22 @@ export function CalendarView() {
                                         {isBooked ? (
                                           slotInfo.eventName ? (
                                             <span className="line-clamp-2 break-words text-center w-full">
-                                              <span className="hidden sm:inline">
-                                                {slotInfo.eventName.length > 15
-                                                  ? slotInfo.eventName.substring(0, 13) + "..."
+                                              <span className="hidden lg:inline">
+                                                {slotInfo.eventName.length > 7
+                                                  ? slotInfo.eventName.substring(0, 5) + "..."
                                                   : slotInfo.eventName}
                                               </span>
-                                              <span className="sm:hidden text-[8px] leading-tight">
-                                                {slotInfo.eventName.length > 8
-                                                  ? slotInfo.eventName.substring(0, 6) + "..."
+                                              <span className="lg:hidden text-[7px] sm:text-[8px] leading-tight truncate">
+                                                {slotInfo.eventName.length > 3
+                                                  ? slotInfo.eventName.substring(0, 2) + "..."
                                                   : slotInfo.eventName}
                                               </span>
                                             </span>
                                           ) : (
-                                            <span className="text-[8px] sm:text-[9px] opacity-70">Dolu</span>
+                                            <span className="text-[7px] sm:text-[8px] opacity-70">D</span>
                                           )
                                         ) : (
-                                          <span className="text-[7px] sm:text-[8px] text-green-700 opacity-50">Müsait</span>
+                                          <span className="text-[7px] sm:text-[8px] text-green-700 opacity-50">M</span>
                                         )}
                                       </button>
                                     </td>
@@ -886,59 +890,59 @@ export function CalendarView() {
                       // Belirli bir merkez seçiliyse, sadece o merkezin salonlarını göster
                       filteredHalls.map((hall) => (
                         <tr key={hall.id} className="border-t border-border">
-                          <td className="sticky left-0 z-10 bg-card p-1.5 sm:p-2 min-w-[140px] sm:min-w-[180px] w-[140px] sm:w-[180px]">
+                          <td className="sticky left-0 z-10 bg-card p-0.5 sm:p-1 md:p-1.5 lg:p-2 min-w-[70px] sm:min-w-[80px] md:min-w-[95px] lg:min-w-[130px] w-[70px] sm:w-[80px] md:w-[95px] lg:w-[130px] border-r border-border">
                             <button
                               type="button"
                               onClick={() => router.push(`/dashboard/${hall.id}`)}
-                              className="text-left text-xs sm:text-sm font-medium text-foreground hover:text-primary break-words w-full"
+                              className="text-left text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs xl:text-sm font-medium text-foreground hover:text-primary break-words w-full line-clamp-2 leading-tight"
                               title={hall.name}
                             >
                               {hall.name}
                             </button>
                           </td>
                           {viewMode === "week" && weekDays.length > 0 ? (
-                            // Hafta görünümü: Her gün için saatler
-                            weekDays.map((day) => (
-                              <td key={day.date} className="p-1 sm:p-1.5 md:p-2 align-top">
-                                <div className="space-y-1">
-                                  {SLOTS.map((slot) => {
-                                    const slotInfo = getSlotStatus(hall.id, slot, day.date);
-                                    const isBooked = slotInfo.status === "booked";
-                                    return (
-                                      <div
-                                        key={slot}
-                                        className={cn(
-                                          "flex items-center justify-center rounded-md px-1 py-0.5 text-[7px] sm:text-[8px] font-medium transition-colors",
-                                          !isBooked &&
-                                            "bg-green-100 text-green-700",
-                                          isBooked &&
-                                            "bg-red-100 text-red-700"
-                                        )}
-                                        title={
-                                          !isBooked
-                                            ? "Müsait"
-                                            : slotInfo.eventName 
-                                              ? `${slotInfo.eventName} - Dolu`
-                                              : "Dolu"
-                                        }
-                                      >
-                                        {isBooked && slotInfo.eventName ? (
-                                          <span className="truncate max-w-[60px] sm:max-w-[80px]">
-                                            {slotInfo.eventName.length > 8
-                                              ? slotInfo.eventName.substring(0, 6) + "..."
-                                              : slotInfo.eventName}
-                                          </span>
-                                        ) : isBooked ? (
-                                          <span className="opacity-70">D</span>
-                                        ) : (
-                                          <span className="opacity-50">M</span>
-                                        )}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </td>
-                            ))
+                                // Hafta görünümü: Her gün için saatler
+                                weekDays.map((day) => (
+                                  <td key={day.date} className="p-0.5 sm:p-1 md:p-1.5 align-top">
+                                    <div className="space-y-0.5 sm:space-y-1">
+                                      {SLOTS.map((slot) => {
+                                        const slotInfo = getSlotStatus(hall.id, slot, day.date);
+                                        const isBooked = slotInfo.status === "booked";
+                                        return (
+                                          <div
+                                            key={slot}
+                                            className={cn(
+                                              "flex items-center justify-center rounded-md px-0.5 py-0.5 text-[6px] sm:text-[7px] md:text-[8px] font-medium transition-colors w-full min-h-[12px] sm:min-h-[14px] md:min-h-[16px]",
+                                              !isBooked &&
+                                                "bg-green-100 text-green-700",
+                                              isBooked &&
+                                                "bg-red-100 text-red-700"
+                                            )}
+                                            title={
+                                              !isBooked
+                                                ? "Müsait"
+                                                : slotInfo.eventName 
+                                                  ? `${slotInfo.eventName} - Dolu`
+                                                  : "Dolu"
+                                            }
+                                          >
+                                            {isBooked && slotInfo.eventName ? (
+                                              <span className="truncate max-w-[28px] sm:max-w-[35px] md:max-w-[45px]">
+                                                {slotInfo.eventName.length > 2
+                                                  ? slotInfo.eventName.substring(0, 1) + "..."
+                                                  : slotInfo.eventName}
+                                              </span>
+                                            ) : isBooked ? (
+                                              <span className="opacity-70 text-[6px] sm:text-[7px] md:text-[8px]">D</span>
+                                            ) : (
+                                              <span className="opacity-50 text-[6px] sm:text-[7px] md:text-[8px]">M</span>
+                                            )}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </td>
+                                ))
                           ) : (
                             // Gün görünümü: Seçilen gün için saatler
                             selectedStr && SLOTS.map((slot) => {
@@ -953,7 +957,7 @@ export function CalendarView() {
                                       router.push(`/dashboard/${hall.id}`)
                                     }
                                     className={cn(
-                                      "mx-auto flex min-h-[36px] sm:min-h-[48px] w-full max-w-[70px] sm:max-w-[90px] items-center justify-center rounded-md px-0.5 sm:px-1.5 py-0.5 sm:py-1.5 text-[8px] sm:text-[10px] font-medium leading-tight transition-colors",
+                                      "mx-auto flex min-h-[22px] sm:min-h-[26px] md:min-h-[30px] lg:min-h-[38px] w-full max-w-[36px] sm:max-w-[40px] md:max-w-[48px] lg:max-w-[58px] items-center justify-center rounded-md px-0.5 sm:px-1 md:px-1.5 py-0.5 sm:py-1 md:py-1.5 text-[7px] sm:text-[8px] md:text-[9px] lg:text-[10px] font-medium leading-tight transition-colors",
                                       !isBooked &&
                                         "bg-green-100 hover:bg-green-200 cursor-pointer",
                                       isBooked &&
@@ -970,22 +974,22 @@ export function CalendarView() {
                                     {isBooked ? (
                                       slotInfo.eventName ? (
                                         <span className="line-clamp-2 break-words text-center w-full">
-                                          <span className="hidden sm:inline">
-                                            {slotInfo.eventName.length > 15
-                                              ? slotInfo.eventName.substring(0, 13) + "..."
+                                          <span className="hidden lg:inline">
+                                            {slotInfo.eventName.length > 7
+                                              ? slotInfo.eventName.substring(0, 5) + "..."
                                               : slotInfo.eventName}
                                           </span>
-                                          <span className="sm:hidden text-[8px] leading-tight">
-                                            {slotInfo.eventName.length > 8
-                                              ? slotInfo.eventName.substring(0, 6) + "..."
+                                          <span className="lg:hidden text-[7px] sm:text-[8px] leading-tight truncate">
+                                            {slotInfo.eventName.length > 3
+                                              ? slotInfo.eventName.substring(0, 2) + "..."
                                               : slotInfo.eventName}
                                           </span>
                                         </span>
                                       ) : (
-                                        <span className="text-[8px] sm:text-[9px] opacity-70">Dolu</span>
+                                        <span className="text-[7px] sm:text-[8px] opacity-70">D</span>
                                       )
                                     ) : (
-                                      <span className="text-[7px] sm:text-[8px] text-green-700 opacity-50">Müsait</span>
+                                      <span className="text-[7px] sm:text-[8px] text-green-700 opacity-50">M</span>
                                     )}
                                   </button>
                                 </td>
@@ -1005,17 +1009,17 @@ export function CalendarView() {
 
       {/* Today's Reservations */}
       <Card className="border-border bg-card">
-        <CardHeader>
-          <CardTitle className="text-base font-semibold text-foreground">
+        <CardHeader className="px-3 sm:px-6 pb-2 sm:pb-3">
+          <CardTitle className="text-sm sm:text-base font-semibold text-foreground">
             Bugünkü Rezervasyonlar
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
+        <CardContent className="px-3 sm:px-6">
+          <div className="space-y-2 sm:space-y-3">
             {todayReservations.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-border bg-muted/30 py-8 text-center">
-                <CalendarIcon className="mx-auto h-10 w-10 text-muted-foreground/50" />
-                <p className="mt-2 text-sm text-muted-foreground">
+              <div className="rounded-lg border border-dashed border-border bg-muted/30 py-6 sm:py-8 text-center">
+                <CalendarIcon className="mx-auto h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground/50" />
+                <p className="mt-2 text-xs sm:text-sm text-muted-foreground">
                   Bugün için rezervasyon yok
                 </p>
               </div>
@@ -1023,25 +1027,25 @@ export function CalendarView() {
               todayReservations.map((r, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between rounded-lg border border-border bg-muted/50 p-3"
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 rounded-lg border border-border bg-muted/50 p-2 sm:p-3"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100">
-                      <CalendarIcon className="h-5 w-5 text-red-600" />
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-red-100 shrink-0">
+                      <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
                     </div>
-                    <div>
-                      <p className="font-medium text-foreground">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium text-foreground truncate" title={(r as ScheduleWithHall).eventName}>
                         {(r as ScheduleWithHall).eventName}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
                         {formatTimeRange(r)} • {r.hallName}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 w-full sm:w-auto">
                     <Badge
                       variant="secondary"
-                      className="bg-red-100 text-red-700"
+                      className="bg-red-100 text-red-700 text-[10px] sm:text-xs px-2 sm:px-2.5 py-1 shrink-0 self-start sm:self-center"
                     >
                       Dolu
                     </Badge>
@@ -1049,6 +1053,7 @@ export function CalendarView() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        className="h-8 sm:h-9 text-xs sm:text-sm px-3 sm:px-4 w-full sm:w-auto shrink-0"
                         onClick={() => {
                           setSelectedReservation(r as ScheduleWithHall);
                           setDetailDialogOpen(true);

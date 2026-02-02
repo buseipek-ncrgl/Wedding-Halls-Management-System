@@ -669,7 +669,7 @@ export default function TakvimPage() {
                 </CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="px-0 sm:px-6">
+            <CardContent className="px-1 sm:px-3 md:px-6">
               {filteredHalls.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 sm:py-12 text-center px-4">
                   <div className="mb-2 sm:mb-3 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-muted">
@@ -680,28 +680,30 @@ export default function TakvimPage() {
                   </p>
                 </div>
               ) : (
-                <div className="overflow-x-auto -mx-4 sm:mx-0">
-                  <div className="inline-block min-w-full align-middle px-2 sm:px-0">
-                    <table className="w-full border-collapse">
+                <div className="overflow-x-auto -mx-1 sm:-mx-3 md:-mx-6 sm:mx-0 w-full max-w-full">
+                  <div className="inline-block min-w-full align-middle px-0 max-w-full">
+                    <table className="w-full border-collapse min-w-[300px] sm:min-w-[450px] md:min-w-[550px] max-w-full table-fixed">
                       <thead>
                         {selectedCenterId === "all" ? (
                           // Tüm merkezler seçiliyse, merkezlere göre grupla
                           <>
                             {/* Merkez başlık satırı */}
                             <tr className="border-b border-border bg-primary/5">
-                              <th className="sticky left-0 z-30 bg-primary/5 border-r border-border px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 text-left text-[10px] sm:text-xs md:text-sm font-semibold text-foreground">
+                              <th className="sticky left-0 z-30 bg-primary/5 border-r border-border px-1 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-3 text-left text-[9px] sm:text-[10px] md:text-xs lg:text-sm font-semibold text-foreground">
                               </th>
                               {hallsByCenter.map(({ center, halls: centerHalls }) => (
                                 <th
                                   key={`center-header-${center.id}`}
                                   colSpan={centerHalls.length}
-                                  className="px-1.5 sm:px-2 md:px-4 py-1.5 sm:py-2 md:py-3 text-center text-[10px] sm:text-xs md:text-sm font-semibold text-foreground border-l-2 border-primary"
+                                  className="px-1 sm:px-1.5 md:px-2 lg:px-3 py-1 sm:py-1.5 md:py-2 lg:py-3 text-center text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs font-semibold text-foreground border-l-2 border-primary min-w-[80px] sm:min-w-[100px] md:min-w-[120px] lg:min-w-[150px]"
                                 >
-                                  <div className="flex items-center justify-center gap-2">
-                                    <Building2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                                    <span>{center.name}</span>
-                                    <Badge variant="secondary" className="text-[9px]">
-                                      {centerHalls.length} Salon
+                                  <div className="flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1 md:gap-1.5 min-w-0" title={center.name}>
+                                    <div className="flex items-center gap-0.5 sm:gap-1 min-w-0">
+                                      <Building2 className="h-2.5 w-2.5 sm:h-3 sm:w-3 md:h-3.5 md:w-3.5 shrink-0" />
+                                      <span className="break-words text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs leading-tight text-center line-clamp-2">{center.name}</span>
+                                    </div>
+                                    <Badge variant="secondary" className="text-[7px] sm:text-[8px] md:text-[9px] lg:text-[10px] px-1 sm:px-1.5 shrink-0 whitespace-nowrap mt-0.5 sm:mt-0">
+                                      {centerHalls.length} Sa
                                     </Badge>
                                   </div>
                                 </th>
@@ -709,16 +711,16 @@ export default function TakvimPage() {
                             </tr>
                             {/* Salon başlık satırı */}
                             <tr className="border-b border-border">
-                              <th className="sticky left-0 z-30 bg-card border-r border-border px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 text-left text-[10px] sm:text-xs md:text-sm font-semibold text-foreground">
+                              <th className="sticky left-0 z-30 bg-card border-r border-border px-1 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-3 text-left text-[9px] sm:text-[10px] md:text-xs lg:text-sm font-semibold text-foreground whitespace-nowrap">
                                 Saat
                               </th>
                               {hallsByCenter.flatMap(({ halls: centerHalls }) =>
                                 centerHalls.map((hall) => (
                                   <th
                                     key={hall.id}
-                                    className="px-1.5 sm:px-2 md:px-4 py-1.5 sm:py-2 md:py-3 text-center text-[10px] sm:text-xs md:text-sm font-semibold text-foreground min-w-[140px] sm:min-w-[160px] md:min-w-[200px]"
+                                    className="px-0.5 sm:px-1 md:px-1.5 lg:px-2 xl:px-4 py-1 sm:py-1.5 md:py-2 lg:py-3 text-center text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs xl:text-sm font-semibold text-foreground min-w-[65px] sm:min-w-[75px] md:min-w-[90px] lg:min-w-[115px] xl:min-w-[140px]"
                                   >
-                                    <span className="break-words whitespace-normal" title={hall.name}>{hall.name}</span>
+                                    <span className="break-words whitespace-normal line-clamp-2 leading-tight block" title={hall.name}>{hall.name}</span>
                                   </th>
                                 ))
                               )}
@@ -727,15 +729,15 @@ export default function TakvimPage() {
                         ) : (
                           // Belirli bir merkez seçiliyse, sadece o merkezin salonlarını göster
                           <tr className="border-b border-border">
-                            <th className="sticky left-0 z-30 bg-card border-r border-border px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 text-left text-[10px] sm:text-xs md:text-sm font-semibold text-foreground">
+                            <th className="sticky left-0 z-30 bg-card border-r border-border px-1 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-3 text-left text-[9px] sm:text-[10px] md:text-xs lg:text-sm font-semibold text-foreground whitespace-nowrap">
                               Saat
                             </th>
                             {filteredHalls.map((hall) => (
                               <th
                                 key={hall.id}
-                                className="px-1.5 sm:px-2 md:px-4 py-1.5 sm:py-2 md:py-3 text-center text-[10px] sm:text-xs md:text-sm font-semibold text-foreground min-w-[140px] sm:min-w-[160px] md:min-w-[200px]"
+                                className="px-0.5 sm:px-1 md:px-1.5 lg:px-2 xl:px-4 py-1 sm:py-1.5 md:py-2 lg:py-3 text-center text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs xl:text-sm font-semibold text-foreground min-w-[65px] sm:min-w-[75px] md:min-w-[90px] lg:min-w-[115px] xl:min-w-[140px]"
                               >
-                                <span className="break-words whitespace-normal" title={hall.name}>{hall.name}</span>
+                                <span className="break-words whitespace-normal line-clamp-2 leading-tight block" title={hall.name}>{hall.name}</span>
                               </th>
                             ))}
                           </tr>
@@ -752,9 +754,9 @@ export default function TakvimPage() {
                             key={timeSlot}
                             className="border-b border-border hover:bg-muted/50 transition-colors"
                           >
-                            <td className="sticky left-0 z-10 bg-card border-r border-border px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-foreground">
-                              <div className="flex items-center gap-1 sm:gap-2">
-                                <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
+                            <td className="sticky left-0 z-10 bg-card border-r border-border px-1 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-3 text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs xl:text-sm font-medium text-foreground whitespace-nowrap">
+                              <div className="flex items-center gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2">
+                                <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 md:h-3.5 md:w-3.5 lg:h-4 lg:w-4 text-muted-foreground shrink-0" />
                                 <span>{timeSlot}</span>
                               </div>
                             </td>
@@ -817,14 +819,14 @@ export default function TakvimPage() {
                                     <td
                                       key={hall.id}
                                       className={cn(
-                                        "px-1 sm:px-2 md:px-4 py-2 sm:py-3 text-center",
+                                        "px-0.5 sm:px-1 py-1 sm:py-1.5 md:py-2 text-center",
                                         (canAccessHallCenter(hall.id) && isAvailable) || (!isAvailable && scheduleWithHall) ? "cursor-pointer hover:bg-muted/30" : ""
                                       )}
                                       onClick={handleCellClick}
                                     >
                                       <div
                                         className={cn(
-                                          "inline-flex items-center justify-center rounded-lg px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium transition-colors",
+                                          "inline-flex items-center justify-center rounded-lg px-0.5 sm:px-1 md:px-1.5 py-0.5 sm:py-0.5 md:py-1 text-[7px] sm:text-[8px] md:text-[9px] lg:text-[10px] xl:text-xs font-medium transition-colors w-full max-w-full",
                                           isAvailable
                                             ? "bg-green-100 text-green-700 border border-green-200"
                                             : "bg-red-100 text-red-700 border border-red-200"
@@ -833,16 +835,16 @@ export default function TakvimPage() {
                                       >
                                         {isAvailable ? (
                                           <>
-                                            <CheckCircle2 className="mr-0.5 sm:mr-1.5 h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 shrink-0" />
-                                            <span className="hidden sm:inline">{displayText}</span>
-                                            <span className="sm:hidden">M</span>
+                                            <CheckCircle2 className="mr-0.5 h-2 w-2 sm:h-2 sm:w-2 md:h-2.5 md:w-2.5 lg:h-3 lg:w-3 shrink-0" />
+                                            <span className="hidden lg:inline truncate">{displayText}</span>
+                                            <span className="lg:hidden">M</span>
                                           </>
                                         ) : (
                                           <>
-                                            <XCircle className="mr-0.5 sm:mr-1.5 h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 shrink-0" />
-                                            <span className="truncate max-w-[60px] sm:max-w-[100px]" title={eventName || "Dolu"}>
-                                              <span className="hidden sm:inline">{displayText}</span>
-                                              <span className="sm:hidden">D</span>
+                                            <XCircle className="mr-0.5 h-2 w-2 sm:h-2 sm:w-2 md:h-2.5 md:w-2.5 lg:h-3 lg:w-3 shrink-0" />
+                                            <span className="truncate max-w-[28px] sm:max-w-[35px] md:max-w-[45px] lg:max-w-[60px] xl:max-w-[80px]" title={eventName || "Dolu"}>
+                                              <span className="hidden lg:inline">{eventName && eventName.length > 6 ? eventName.substring(0, 5) + "..." : eventName || displayText}</span>
+                                              <span className="lg:hidden">D</span>
                                             </span>
                                           </>
                                         )}
@@ -903,14 +905,14 @@ export default function TakvimPage() {
                                   <td
                                     key={hall.id}
                                       className={cn(
-                                        "px-1 sm:px-2 md:px-4 py-2 sm:py-3 text-center",
+                                        "px-0.5 sm:px-1 py-1 sm:py-1.5 md:py-2 text-center",
                                         (canAccessHallCenter(hall.id) && isAvailable) || (!isAvailable && scheduleWithHall) ? "cursor-pointer hover:bg-muted/30" : ""
                                       )}
                                     onClick={handleCellClick}
                                   >
                                     <div
                                       className={cn(
-                                        "inline-flex items-center justify-center rounded-lg px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium transition-colors",
+                                        "inline-flex items-center justify-center rounded-lg px-0.5 sm:px-1 md:px-1.5 py-0.5 sm:py-0.5 md:py-1 text-[7px] sm:text-[8px] md:text-[9px] lg:text-[10px] xl:text-xs font-medium transition-colors w-full max-w-full",
                                         isAvailable
                                           ? "bg-green-100 text-green-700 border border-green-200"
                                           : "bg-red-100 text-red-700 border border-red-200"
@@ -919,16 +921,16 @@ export default function TakvimPage() {
                                     >
                                       {isAvailable ? (
                                         <>
-                                          <CheckCircle2 className="mr-0.5 sm:mr-1.5 h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 shrink-0" />
-                                          <span className="hidden sm:inline">{displayText}</span>
-                                          <span className="sm:hidden">M</span>
+                                          <CheckCircle2 className="mr-0.5 h-2 w-2 sm:h-2 sm:w-2 md:h-2.5 md:w-2.5 lg:h-3 lg:w-3 shrink-0" />
+                                          <span className="hidden lg:inline truncate">{displayText}</span>
+                                          <span className="lg:hidden">M</span>
                                         </>
                                       ) : (
                                         <>
-                                          <XCircle className="mr-0.5 sm:mr-1.5 h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 shrink-0" />
-                                          <span className="truncate max-w-[60px] sm:max-w-[100px]" title={eventName || "Dolu"}>
-                                            <span className="hidden sm:inline">{displayText}</span>
-                                            <span className="sm:hidden">D</span>
+                                          <XCircle className="mr-0.5 h-2 w-2 sm:h-2 sm:w-2 md:h-2.5 md:w-2.5 lg:h-3 lg:w-3 shrink-0" />
+                                          <span className="truncate max-w-[28px] sm:max-w-[35px] md:max-w-[45px] lg:max-w-[60px] xl:max-w-[80px]" title={eventName || "Dolu"}>
+                                            <span className="hidden lg:inline">{eventName && eventName.length > 6 ? eventName.substring(0, 5) + "..." : eventName || displayText}</span>
+                                            <span className="lg:hidden">D</span>
                                           </span>
                                         </>
                                       )}
@@ -971,30 +973,30 @@ export default function TakvimPage() {
             setSelectedHallForSchedule("");
           }
         }}>
-          <DialogContent className="max-w-[95vw] sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Müsaitlik Düzenle</DialogTitle>
-              <DialogDescription>
+          <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="px-1 sm:px-0">
+              <DialogTitle className="text-base sm:text-lg">Müsaitlik Düzenle</DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm">
                 {selectedDateStr} tarihinde {selectedTimeSlot} saatinde müsaitlik durumunu ayarlayın
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Salon</Label>
+            <div className="space-y-2.5 sm:space-y-3 md:space-y-4 py-2 sm:py-4 px-1 sm:px-0">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-xs sm:text-sm">Salon</Label>
                 {selectedHallForSchedule ? (() => {
                   const selectedHall = halls.find((h) => h.id === selectedHallForSchedule);
                   const center = selectedHall ? centers.find((c) => c.id === selectedHall.centerId) : null;
                   return (
-                    <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <span className="font-medium">{center?.name ?? "—"}</span>
-                      <span className="text-muted-foreground">–</span>
-                      <span>{selectedHall?.name ?? "—"}</span>
+                    <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
+                      <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
+                      <span className="font-medium truncate">{center?.name ?? "—"}</span>
+                      <span className="text-muted-foreground shrink-0">–</span>
+                      <span className="truncate">{selectedHall?.name ?? "—"}</span>
                     </div>
                   );
                 })() : (
                   <Select value={selectedHallForSchedule} onValueChange={setSelectedHallForSchedule}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-8 sm:h-10 text-xs sm:text-sm">
                       <SelectValue placeholder="Salon seçin" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1007,20 +1009,20 @@ export default function TakvimPage() {
                   </Select>
                 )}
               </div>
-              <div className="space-y-2">
-                <Label>Tarih</Label>
-                <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-xs sm:text-sm">Tarih</Label>
+                <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                   {selectedDateStr}
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Saat</Label>
-                <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-xs sm:text-sm">Saat</Label>
+                <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                   {selectedTimeSlot}
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Durum</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-xs sm:text-sm">Durum</Label>
                 <Select
                   value={scheduleStatus}
                   onValueChange={(value: "Available" | "Reserved") => {
@@ -1038,7 +1040,7 @@ export default function TakvimPage() {
                     }
                   }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-8 sm:h-10 text-xs sm:text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1051,14 +1053,14 @@ export default function TakvimPage() {
               {/* Dolu seçildiğinde etkinlik bilgileri */}
               {scheduleStatus === "Reserved" && (
                 <>
-                  <div className="space-y-2">
-                    <Label>Etkinlik Tipi *</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Etkinlik Tipi *</Label>
                     {isSuperAdmin ? (
                       <Select
                         value={eventType?.toString() ?? ""}
                         onValueChange={(value) => setEventType(parseInt(value))}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="h-8 sm:h-10 text-xs sm:text-sm">
                           <SelectValue placeholder="Etkinlik tipi seçin" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1070,7 +1072,7 @@ export default function TakvimPage() {
                         </SelectContent>
                       </Select>
                     ) : (
-                      <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm">
+                      <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                         {editorDepartment === 0 && "Nikah"}
                         {editorDepartment === 1 && "Nişan"}
                         {editorDepartment === 2 && "Konser"}
@@ -1080,17 +1082,19 @@ export default function TakvimPage() {
                       </div>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Label>Etkinlik Adı *</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Etkinlik Adı *</Label>
                     <Input
+                      className="text-xs sm:text-sm h-8 sm:h-10"
                       placeholder="Örn: Düğün Töreni"
                       value={eventName}
                       onChange={(e) => setEventName(e.target.value)}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Etkinlik Sahibi/Kişi Adı *</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Etkinlik Sahibi/Kişi Adı *</Label>
                     <Input
+                      className="text-xs sm:text-sm h-8 sm:h-10"
                       placeholder="Örn: Ahmet Yılmaz"
                       value={eventOwner}
                       onChange={(e) => setEventOwner(e.target.value)}
@@ -1099,9 +1103,10 @@ export default function TakvimPage() {
                 </>
               )}
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex-col sm:flex-row gap-2 px-1 sm:px-0 pt-2 sm:pt-0">
               <Button
                 variant="outline"
+                className="w-full sm:w-auto"
                 onClick={() => {
                   // Formu temizle
                   setEventType(undefined);
@@ -1113,6 +1118,7 @@ export default function TakvimPage() {
                 İptal
               </Button>
               <Button
+                className="w-full sm:w-auto"
                 onClick={async () => {
                   if (!selectedHallForSchedule || !selectedTimeSlot) {
                     toast.error("Lütfen salon seçin");
@@ -1270,10 +1276,10 @@ export default function TakvimPage() {
 
       {/* Detay Dialog'u */}
       <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Rezervasyon Detayları</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="px-1 sm:px-0">
+            <DialogTitle className="text-base sm:text-lg">Rezervasyon Detayları</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
               {selectedSchedule && (
                 <>
                   {(selectedSchedule as ScheduleWithHall).eventName || "Rezervasyon Detayları"} - {formatTimeRange(selectedSchedule)}
@@ -1282,55 +1288,55 @@ export default function TakvimPage() {
             </DialogDescription>
           </DialogHeader>
           {selectedSchedule && (
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label className="text-sm font-semibold">Etkinlik Adı</Label>
-                <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm">
+            <div className="space-y-2.5 sm:space-y-3 md:space-y-4 py-2 sm:py-4 px-1 sm:px-0">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-xs sm:text-sm font-semibold">Etkinlik Adı</Label>
+                <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                   {(selectedSchedule as ScheduleWithHall).eventName || "Etkinlik Adı Yok"}
                 </div>
               </div>
               {(selectedSchedule as ScheduleWithHall).eventOwner && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold">Rezervasyon Yapan</Label>
-                  <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label className="text-xs sm:text-sm font-semibold">Rezervasyon Yapan</Label>
+                  <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                     {(selectedSchedule as ScheduleWithHall).eventOwner}
                   </div>
                 </div>
               )}
               {(selectedSchedule as ScheduleWithHall).eventType !== undefined && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold">Etkinlik Tipi</Label>
-                  <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label className="text-xs sm:text-sm font-semibold">Etkinlik Tipi</Label>
+                  <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                     {getEventTypeName((selectedSchedule as ScheduleWithHall).eventType)}
                   </div>
                 </div>
               )}
-              <div className="space-y-2">
-                <Label className="text-sm font-semibold">Tarih</Label>
-                <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-xs sm:text-sm font-semibold">Tarih</Label>
+                <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                   {selectedSchedule.date}
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label className="text-sm font-semibold">Saat Aralığı</Label>
-                <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-xs sm:text-sm font-semibold">Saat Aralığı</Label>
+                <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                   {formatTimeRange(selectedSchedule)}
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label className="text-sm font-semibold">Salon</Label>
-                <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-xs sm:text-sm font-semibold">Salon</Label>
+                <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
                   {selectedSchedule.hallName}
                 </div>
               </div>
             </div>
           )}
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 px-1 sm:px-0 pt-2 sm:pt-0 sticky bottom-0 bg-background border-t border-border -mx-6 -mb-6 px-6 pb-4 sm:border-t-0 sm:static sm:mx-0 sm:mb-0 sm:px-0 sm:pb-0">
             {selectedSchedule && canEditSchedule(selectedSchedule as ScheduleWithHall) && (
               <>
                 <Button
                   variant="outline"
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto h-9 sm:h-10 text-sm"
                   onClick={() => {
                     if (!selectedSchedule) return;
                     
@@ -1358,12 +1364,12 @@ export default function TakvimPage() {
                     setScheduleDialogOpen(true);
                   }}
                 >
-                  <Edit className="h-4 w-4 mr-2" />
+                  <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                   Düzenle
                 </Button>
                 <Button
                   variant="destructive"
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto h-9 sm:h-10 text-sm"
                   onClick={() => {
                     if (!selectedSchedule) return;
                     setScheduleToDelete(selectedSchedule);
@@ -1371,12 +1377,12 @@ export default function TakvimPage() {
                     setDeleteDialogOpen(true);
                   }}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
+                  <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                   Sil
                 </Button>
               </>
             )}
-            <Button variant="outline" className="w-full sm:w-auto" onClick={() => setDetailDialogOpen(false)}>
+            <Button variant="outline" className="w-full sm:w-auto h-9 sm:h-10 text-sm" onClick={() => setDetailDialogOpen(false)}>
               Kapat
             </Button>
           </DialogFooter>
@@ -1386,27 +1392,27 @@ export default function TakvimPage() {
       {/* Silme Onay Dialog'u */}
       {canEdit && (
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogContent className="max-w-[95vw] sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Rezervasyonu Sil</DialogTitle>
-              <DialogDescription>
+          <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="px-1 sm:px-0">
+              <DialogTitle className="text-base sm:text-lg">Rezervasyonu Sil</DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm">
                 Bu rezervasyonu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
               </DialogDescription>
             </DialogHeader>
             {scheduleToDelete && (
-              <div className="space-y-2 py-4">
-                <div className="rounded-md border border-border bg-muted p-3">
-                  <p className="text-sm font-medium">
+              <div className="space-y-2 py-2 sm:py-4 px-1 sm:px-0">
+                <div className="rounded-md border border-border bg-muted p-2 sm:p-3">
+                  <p className="text-xs sm:text-sm font-medium">
                     {(scheduleToDelete as ScheduleWithHall).eventName || "Etkinlik Adı Yok"}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
                     {scheduleToDelete.hallName} • {scheduleToDelete.date} • {formatTimeRange(scheduleToDelete)}
                   </p>
                 </div>
               </div>
             )}
-            <DialogFooter>
-              <Button variant="outline" onClick={() => {
+            <DialogFooter className="flex-col sm:flex-row gap-2 px-1 sm:px-0 pt-2 sm:pt-0">
+              <Button variant="outline" className="w-full sm:w-auto h-9 sm:h-10 text-sm" onClick={() => {
                 setDeleteDialogOpen(false);
                 setScheduleToDelete(null);
               }}>
@@ -1414,6 +1420,7 @@ export default function TakvimPage() {
               </Button>
               <Button
                 variant="destructive"
+                className="w-full sm:w-auto h-9 sm:h-10 text-sm"
                 onClick={async () => {
                   if (!scheduleToDelete) return;
                   try {
@@ -1431,7 +1438,7 @@ export default function TakvimPage() {
                   }
                 }}
               >
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                 Sil
               </Button>
             </DialogFooter>
@@ -1442,91 +1449,96 @@ export default function TakvimPage() {
       {/* Bugünkü Rezervasyonlar */}
       {todayReservations.length > 0 && (
         <Card className="border-border">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base font-semibold">
-              <CalendarIcon className="h-4 w-4" />
+          <CardHeader className="px-3 sm:px-6 pb-2 sm:pb-3">
+            <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base font-semibold">
+              <CalendarIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Bugünkü Rezervasyonlar
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
+          <CardContent className="px-3 sm:px-6">
+            <div className="space-y-2 sm:space-y-3">
               {todayReservations.map((reservation) => (
                 <div
                   key={reservation.id}
-                  className="flex items-center justify-between rounded-lg border border-border bg-card p-3 hover:bg-muted/50 transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 rounded-lg border border-border bg-card p-2 sm:p-3 hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex items-center gap-3">
-                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    <CalendarIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium text-foreground truncate" title={reservation.eventName || "Etkinlik Adı Yok"}>
                         {reservation.eventName || "Etkinlik Adı Yok"}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
                         {formatTimeRange(reservation)} • {reservation.hallName}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="destructive" className="bg-red-100 text-red-700 border border-red-200">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 w-full sm:w-auto">
+                    <Badge variant="destructive" className="bg-red-100 text-red-700 border border-red-200 text-[10px] sm:text-xs px-2 sm:px-2.5 py-1 shrink-0 self-start sm:self-center">
                       Dolu
                     </Badge>
-                    {canEditSchedule(reservation as ScheduleWithHall) && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            const reservationWithHall = reservation as ScheduleWithHall;
-                            
-                            // Erişim kontrolü - form açılmadan önce
-                            if (!canEditSchedule(reservationWithHall)) {
-                              toast.error("Bu rezervasyonu düzenleme yetkiniz bulunmamaktadır. Sadece kendi departmanınıza ait rezervasyonları düzenleyebilirsiniz.");
-                              return;
-                            }
-                            
-                            // Merkez erişim kontrolü
-                            if (!canAccessHallCenter(reservation.weddingHallId)) {
-                              toast.error("Bu merkeze erişim yetkiniz bulunmamaktadır.");
-                              return;
-                            }
-                            
-                            setSelectedSchedule(reservation);
-                            setSelectedTimeSlot(reservation.startTime.slice(0, 5));
-                            setSelectedHallForSchedule(reservation.weddingHallId);
-                            setScheduleStatus(reservation.status);
-                            setEventType(reservationWithHall.eventType);
-                            setEventName(reservationWithHall.eventName || "");
-                            setEventOwner(reservationWithHall.eventOwner || "");
-                            setDetailDialogOpen(false);
-                            setScheduleDialogOpen(true);
-                          }}
-                        >
-                          <Edit className="h-3 w-3 mr-1" />
-                          Düzenle
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => {
-                            setScheduleToDelete(reservation);
-                            setDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 className="h-3 w-3 mr-1" />
-                          Sil
-                        </Button>
-                      </>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedSchedule(reservation);
-                        setDetailDialogOpen(true);
-                      }}
-                    >
-                      Detay
-                    </Button>
+                    <div className="flex items-center gap-2 flex-1 sm:flex-initial">
+                      {canEditSchedule(reservation as ScheduleWithHall) && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 sm:h-9 text-xs sm:text-sm px-3 sm:px-4 flex-1 sm:flex-initial shrink-0"
+                            onClick={() => {
+                              const reservationWithHall = reservation as ScheduleWithHall;
+                              
+                              // Erişim kontrolü - form açılmadan önce
+                              if (!canEditSchedule(reservationWithHall)) {
+                                toast.error("Bu rezervasyonu düzenleme yetkiniz bulunmamaktadır. Sadece kendi departmanınıza ait rezervasyonları düzenleyebilirsiniz.");
+                                return;
+                              }
+                              
+                              // Merkez erişim kontrolü
+                              if (!canAccessHallCenter(reservation.weddingHallId)) {
+                                toast.error("Bu merkeze erişim yetkiniz bulunmamaktadır.");
+                                return;
+                              }
+                              
+                              setSelectedSchedule(reservation);
+                              setSelectedTimeSlot(reservation.startTime.slice(0, 5));
+                              setSelectedHallForSchedule(reservation.weddingHallId);
+                              setScheduleStatus(reservation.status);
+                              setEventType(reservationWithHall.eventType);
+                              setEventName(reservationWithHall.eventName || "");
+                              setEventOwner(reservationWithHall.eventOwner || "");
+                              setDetailDialogOpen(false);
+                              setScheduleDialogOpen(true);
+                            }}
+                          >
+                            <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                            Düzenle
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="h-8 sm:h-9 text-xs sm:text-sm px-3 sm:px-4 flex-1 sm:flex-initial shrink-0"
+                            onClick={() => {
+                              setScheduleToDelete(reservation);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                            Sil
+                          </Button>
+                        </>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 sm:h-9 text-xs sm:text-sm px-3 sm:px-4 flex-1 sm:flex-initial shrink-0"
+                        onClick={() => {
+                          setSelectedSchedule(reservation);
+                          setDetailDialogOpen(true);
+                        }}
+                      >
+                        Detay
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}

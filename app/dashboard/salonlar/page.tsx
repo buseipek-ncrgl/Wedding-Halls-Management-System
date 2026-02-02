@@ -127,18 +127,18 @@ export default function SalonlarPage() {
       />
 
       <Dialog open={!!centerToDelete} onOpenChange={(open) => { if (!open) setCenterToDelete(null); }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Merkezi sil</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="px-1 sm:px-0">
+            <DialogTitle className="text-base sm:text-lg">Merkezi sil</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
               &quot;{centerToDelete?.name}&quot; merkezini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCenterToDelete(null)}>
+          <DialogFooter className="flex-col sm:flex-row gap-2 px-1 sm:px-0 pt-2 sm:pt-0">
+            <Button variant="outline" className="w-full sm:w-auto h-9 sm:h-10 text-sm" onClick={() => setCenterToDelete(null)}>
               İptal
             </Button>
-            <Button variant="destructive" onClick={handleDeleteConfirm} disabled={deleting}>
+            <Button variant="destructive" className="w-full sm:w-auto h-9 sm:h-10 text-sm" onClick={handleDeleteConfirm} disabled={deleting}>
               {deleting ? "Siliniyor..." : "Sil"}
             </Button>
           </DialogFooter>

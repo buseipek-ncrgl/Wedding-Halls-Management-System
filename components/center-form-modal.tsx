@@ -321,52 +321,55 @@ export function CenterFormModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0 border-b">
-          <DialogTitle className="text-foreground flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
+      <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+        <DialogHeader className="px-3 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 flex-shrink-0 border-b">
+          <DialogTitle className="text-base sm:text-lg text-foreground flex items-center gap-1.5 sm:gap-2">
+            <Building2 className="h-4 w-4 sm:h-5 sm:w-5" />
             {title}
           </DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogDescription className="text-xs sm:text-sm">{description}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-6">
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="center-name">Merkez Adı *</Label>
+          <div className="flex-1 overflow-y-auto px-3 sm:px-6">
+            <div className="space-y-3 sm:space-y-4 py-3 sm:py-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="center-name" className="text-xs sm:text-sm">Merkez Adı *</Label>
                 <Input
                   id="center-name"
+                  className="text-xs sm:text-sm h-8 sm:h-10"
                   value={form.name}
                   onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                   placeholder="Örn: Şehitkamil Kültür Kongre Merkezi"
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="center-address">Adres</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="center-address" className="text-xs sm:text-sm">Adres</Label>
                 <Input
                   id="center-address"
+                  className="text-xs sm:text-sm h-8 sm:h-10"
                   value={form.address}
                   onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))}
                   placeholder="Adres"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="center-description">Açıklama</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="center-description" className="text-xs sm:text-sm">Açıklama</Label>
                 <Textarea
                   id="center-description"
+                  className="text-xs sm:text-sm min-h-16 sm:min-h-20 resize-none"
                   value={form.description}
                   onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
                   placeholder="Kısa açıklama"
-                  className="min-h-20 resize-none"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="center-capacity">Toplam Kapasite</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="center-capacity" className="text-xs sm:text-sm">Toplam Kapasite</Label>
                 <Input
                   id="center-capacity"
                   type="number"
                   min={0}
+                  className="text-xs sm:text-sm h-8 sm:h-10"
                   value={form.capacity || ""}
                   onChange={(e) =>
                     setForm((p) => ({
@@ -376,21 +379,21 @@ export function CenterFormModal({
                   }
                   placeholder="Kişi sayısı"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
                   Merkezin toplam kapasitesi (isteğe bağlı)
                 </p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="center-image">Görsel</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="center-image" className="text-xs sm:text-sm">Görsel</Label>
                 <div className="space-y-2">
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => fileInputRef.current?.click()}
-                      className="gap-2"
+                      className="gap-1.5 sm:gap-2 h-8 sm:h-10 text-xs sm:text-sm"
                     >
-                      <Upload className="h-4 w-4" />
+                      <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       Görsel Seç
                     </Button>
                     <input
@@ -409,26 +412,27 @@ export function CenterFormModal({
                           setImagePreview("");
                           setForm((p) => ({ ...p, imageUrl: "" }));
                         }}
-                        className="gap-2 text-destructive"
+                        className="gap-1.5 sm:gap-2 text-destructive h-8 sm:h-10 text-xs sm:text-sm"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         Kaldır
                       </Button>
                     )}
                   </div>
                   {imagePreview ? (
                     <div className="relative w-full overflow-hidden rounded-lg border border-border">
-                      <img src={imagePreview} alt="Önizleme" className="h-48 w-full object-cover" />
+                      <img src={imagePreview} alt="Önizleme" className="h-32 sm:h-48 w-full object-cover" />
                     </div>
                   ) : (
-                    <div className="flex h-48 items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25">
+                    <div className="flex h-32 sm:h-48 items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25">
                       <div className="text-center">
-                        <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                        <p className="mt-2 text-sm text-muted-foreground">Görsel seçilmedi</p>
+                        <ImageIcon className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground/50" />
+                        <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-muted-foreground">Görsel seçilmedi</p>
                       </div>
                     </div>
                   )}
                   <Input
+                    className="text-xs sm:text-sm h-8 sm:h-10"
                     value={form.imageUrl}
                     onChange={(e) => {
                       setForm((p) => ({ ...p, imageUrl: e.target.value }));
@@ -439,11 +443,11 @@ export function CenterFormModal({
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Teknik Özellikler</Label>
-                <div className="grid grid-cols-2 gap-2 rounded-lg border p-3 max-h-60 overflow-y-auto">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-xs sm:text-sm">Teknik Özellikler</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 rounded-lg border p-2 sm:p-3 max-h-48 sm:max-h-60 overflow-y-auto">
                   {TECHNICAL_DETAILS_OPTIONS.map((option) => (
-                    <div key={option.id} className="flex items-center space-x-2">
+                    <div key={option.id} className="flex items-center space-x-1.5 sm:space-x-2">
                       <Checkbox
                         id={`center-tech-${option.id}`}
                         checked={selectedTechnicalDetails.has(option.id)}
@@ -451,7 +455,7 @@ export function CenterFormModal({
                       />
                       <label
                         htmlFor={`center-tech-${option.id}`}
-                        className="text-sm font-medium leading-none cursor-pointer"
+                        className="text-xs sm:text-sm font-medium leading-none cursor-pointer"
                       >
                         {option.label}
                       </label>
@@ -459,23 +463,23 @@ export function CenterFormModal({
                   ))}
                 </div>
                 <Textarea
+                  className="text-xs sm:text-sm min-h-16 sm:min-h-20 resize-none mt-1 sm:mt-2"
                   value={form.technicalDetails}
                   onChange={(e) => {
                     setForm((p) => ({ ...p, technicalDetails: e.target.value }));
                     setSelectedTechnicalDetails(parseTechnicalDetails(e.target.value));
                   }}
                   placeholder="Ek teknik detaylar (isteğe bağlı)"
-                  className="min-h-20 resize-none mt-2"
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Erişim İzni Olan Editörler</Label>
-                <div className="space-y-2 rounded-lg border p-3 max-h-48 overflow-y-auto">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-xs sm:text-sm">Erişim İzni Olan Editörler</Label>
+                <div className="space-y-1.5 sm:space-y-2 rounded-lg border p-2 sm:p-3 max-h-40 sm:max-h-48 overflow-y-auto">
                   {editors.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Henüz editör kullanıcı yok.</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Henüz editör kullanıcı yok.</p>
                   ) : (
                     editors.map((editor) => (
-                      <div key={editor.id} className="flex items-center space-x-2">
+                      <div key={editor.id} className="flex items-center space-x-1.5 sm:space-x-2">
                         <Checkbox
                           id={`center-editor-${editor.id}`}
                           checked={selectedEditorIds.has(editor.id)}
@@ -488,7 +492,7 @@ export function CenterFormModal({
                         />
                         <label
                           htmlFor={`center-editor-${editor.id}`}
-                          className="text-sm font-medium leading-none cursor-pointer flex-1"
+                          className="text-xs sm:text-sm font-medium leading-none cursor-pointer flex-1 break-words"
                         >
                           {editor.name} ({editor.email}) - {getDepartmentName(editor.department)}
                         </label>
@@ -496,20 +500,20 @@ export function CenterFormModal({
                     ))
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
                   Bu merkeze erişim izni olan editörleri seçin.
                 </p>
               </div>
             </div>
           </div>
-          <DialogFooter className="px-6 pb-6 pt-4 border-t flex-shrink-0 bg-background">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <DialogFooter className="px-3 sm:px-6 pb-4 sm:pb-6 pt-3 sm:pt-4 border-t flex-shrink-0 bg-background flex-col sm:flex-row gap-2">
+            <Button type="button" variant="outline" className="w-full sm:w-auto h-9 sm:h-10 text-sm" onClick={() => onOpenChange(false)}>
               İptal
             </Button>
             <Button
               type="submit"
               disabled={!form.name.trim() || isSubmitting}
-              className="gap-2"
+              className="gap-1.5 sm:gap-2 w-full sm:w-auto h-9 sm:h-10 text-sm"
             >
               {isSubmitting ? "Kaydediliyor..." : mode === "create" ? "Oluştur" : "Kaydet"}
             </Button>

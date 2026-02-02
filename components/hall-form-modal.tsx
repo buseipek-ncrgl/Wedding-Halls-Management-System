@@ -343,21 +343,21 @@ export function HallFormModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0 border-b">
-          <DialogTitle className="text-foreground">{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+      <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+        <DialogHeader className="px-3 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 flex-shrink-0 border-b">
+          <DialogTitle className="text-base sm:text-lg text-foreground">{title}</DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm">{description}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-6">
-            <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="hall-center">Merkez *</Label>
+          <div className="flex-1 overflow-y-auto px-3 sm:px-6">
+            <div className="space-y-3 sm:space-y-4 py-3 sm:py-4">
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="hall-center" className="text-xs sm:text-sm">Merkez *</Label>
             <Select
               value={form.centerId}
               onValueChange={(value) => setForm((p) => ({ ...p, centerId: value }))}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-8 sm:h-10 text-xs sm:text-sm">
                 <SelectValue placeholder="Merkez seçin" />
               </SelectTrigger>
               <SelectContent>
@@ -369,32 +369,35 @@ export function HallFormModal({
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="hall-name">Ad</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="hall-name" className="text-xs sm:text-sm">Ad</Label>
             <Input
               id="hall-name"
+              className="text-xs sm:text-sm h-8 sm:h-10"
               value={form.name}
               onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
               placeholder="Salon adı"
               required
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="hall-address">Adres</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="hall-address" className="text-xs sm:text-sm">Adres</Label>
             <Input
               id="hall-address"
+              className="text-xs sm:text-sm h-8 sm:h-10"
               value={form.address}
               onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))}
               placeholder="Adres"
               required
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="hall-capacity">Kapasite</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="hall-capacity" className="text-xs sm:text-sm">Kapasite</Label>
             <Input
               id="hall-capacity"
               type="number"
               min={1}
+              className="text-xs sm:text-sm h-8 sm:h-10"
               value={form.capacity || ""}
               onChange={(e) =>
                 setForm((p) => ({
@@ -406,29 +409,29 @@ export function HallFormModal({
               required
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="hall-description">Açıklama</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="hall-description" className="text-xs sm:text-sm">Açıklama</Label>
             <Textarea
               id="hall-description"
+              className="text-xs sm:text-sm min-h-16 sm:min-h-20 resize-none"
               value={form.description}
               onChange={(e) =>
                 setForm((p) => ({ ...p, description: e.target.value }))
               }
               placeholder="Açıklama"
-              className="min-h-20 resize-none"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="hall-image">Görsel</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="hall-image" className="text-xs sm:text-sm">Görsel</Label>
             <div className="space-y-2">
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
-                  className="gap-2"
+                  className="gap-1.5 sm:gap-2 h-8 sm:h-10 text-xs sm:text-sm"
                 >
-                  <Upload className="h-4 w-4" />
+                  <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   Görsel Seç
                 </Button>
                 <Input
@@ -447,9 +450,9 @@ export function HallFormModal({
                       setImagePreview("");
                       setForm((p) => ({ ...p, imageUrl: "" }));
                     }}
-                    className="gap-2 text-destructive"
+                    className="gap-1.5 sm:gap-2 text-destructive h-8 sm:h-10 text-xs sm:text-sm"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     Kaldır
                   </Button>
                 )}
@@ -459,14 +462,14 @@ export function HallFormModal({
                   <img
                     src={imagePreview}
                     alt="Preview"
-                    className="h-48 w-full object-cover"
+                    className="h-32 sm:h-48 w-full object-cover"
                   />
                 </div>
               ) : (
-                <div className="flex h-48 items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25">
+                <div className="flex h-32 sm:h-48 items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25">
                   <div className="text-center">
-                    <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                    <p className="mt-2 text-sm text-muted-foreground">
+                    <ImageIcon className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground/50" />
+                    <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-muted-foreground">
                       Görsel seçilmedi
                     </p>
                   </div>
@@ -474,22 +477,22 @@ export function HallFormModal({
               )}
               <Input
                 id="hall-imageUrl"
+                className="text-xs sm:text-sm h-8 sm:h-10 mt-2"
                 value={form.imageUrl}
                 onChange={(e) => {
                   setForm((p) => ({ ...p, imageUrl: e.target.value }));
                   setImagePreview(e.target.value);
                 }}
                 placeholder="Veya görsel URL'i girin..."
-                className="mt-2"
               />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="hall-technicalDetails">Teknik Detaylar</Label>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3 rounded-lg border p-4">
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="hall-technicalDetails" className="text-xs sm:text-sm">Teknik Detaylar</Label>
+            <div className="space-y-2 sm:space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-3 rounded-lg border p-2 sm:p-4">
                 {TECHNICAL_DETAILS_OPTIONS.map((option) => (
-                  <div key={option.id} className="flex items-center space-x-2">
+                  <div key={option.id} className="flex items-center space-x-1.5 sm:space-x-2">
                     <Checkbox
                       id={`tech-${option.id}`}
                       checked={selectedTechnicalDetails.has(option.id)}
@@ -497,7 +500,7 @@ export function HallFormModal({
                     />
                     <label
                       htmlFor={`tech-${option.id}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      className="text-xs sm:text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                     >
                       {option.label}
                     </label>
@@ -506,6 +509,7 @@ export function HallFormModal({
               </div>
               <Textarea
                 id="hall-technicalDetails"
+                className="text-xs sm:text-sm min-h-16 sm:min-h-20 resize-none"
                 value={form.technicalDetails}
                 onChange={(e) => {
                   setForm((p) => ({ ...p, technicalDetails: e.target.value }));
@@ -514,19 +518,19 @@ export function HallFormModal({
                   setSelectedTechnicalDetails(parsed);
                 }}
                 placeholder="Ek teknik detaylar veya özel notlar (isteğe bağlı)..."
-                className="min-h-20 resize-none"
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">
                 Yukarıdaki seçeneklerden seçim yapabilir veya manuel olarak ek bilgi girebilirsiniz.
               </p>
             </div>
           </div>
             </div>
           </div>
-          <DialogFooter className="px-6 pb-6 pt-4 border-t flex-shrink-0 bg-background">
+          <DialogFooter className="px-3 sm:px-6 pb-4 sm:pb-6 pt-3 sm:pt-4 border-t flex-shrink-0 bg-background flex-col sm:flex-row gap-2">
             <Button
               type="button"
               variant="outline"
+              className="w-full sm:w-auto h-9 sm:h-10 text-sm"
               onClick={() => onOpenChange(false)}
             >
               İptal
@@ -534,7 +538,7 @@ export function HallFormModal({
             <Button
               type="submit"
               disabled={!form.name.trim() || isSubmitting}
-              className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+              className="gap-1.5 sm:gap-2 bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto h-9 sm:h-10 text-sm"
             >
               {isSubmitting ? "Kaydediliyor..." : mode === "create" ? "Oluştur" : "Kaydet"}
             </Button>

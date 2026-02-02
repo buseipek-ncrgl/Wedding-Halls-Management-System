@@ -30,12 +30,12 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
  * Align with lib/dashboard-routes EDITOR_ONLY_PATHS.
  */
 const navItems = [
-  { href: "/dashboard", label: "Ana Sayfa", icon: Home, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
-  { href: "/dashboard/takvim", label: "Takvim", icon: Calendar, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
+  // { href: "/dashboard", label: "Ana Sayfa", icon: Home, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
+  // { href: "/dashboard/takvim", label: "Takvim", icon: Calendar, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
   { href: "/dashboard/salonlar", label: "Salonlar", icon: Building2, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
   { href: "/dashboard/talep-et", label: "Talep Et", icon: Plus, roles: ["Viewer"] as const },
-  { href: "/dashboard/mesajlar", label: "Mesajlar", icon: MessageSquare, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
-  { href: "/dashboard/talepler", label: "Talepler", icon: FileText, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
+  // { href: "/dashboard/mesajlar", label: "Mesajlar", icon: MessageSquare, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
+  // { href: "/dashboard/talepler", label: "Talepler", icon: FileText, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
   { href: "/dashboard/kisiler", label: "Yönetim", icon: Users, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
   { href: "/dashboard/ayarlar", label: "Ayarlar", icon: Settings, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
 ];
@@ -77,7 +77,7 @@ export function Sidebar({ open, onOpenChange, isMobile = false, onCollapsedChang
       <div className="flex h-16 items-center justify-between border-b border-border px-4">
         <div
           className="flex cursor-pointer items-center gap-3"
-          onClick={() => handleNavClick("/dashboard")}
+          onClick={() => handleNavClick("/dashboard/salonlar")}
         >
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary">
             <Building2 className="h-5 w-5 text-primary-foreground" />

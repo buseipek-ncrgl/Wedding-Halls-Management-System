@@ -32,47 +32,49 @@ export function HallCard({ hall, onEdit, onDelete }: HallCardProps) {
         />
       </div>
       
-      <CardContent className="space-y-3 p-5">
-        <h3 className="text-lg font-semibold text-foreground line-clamp-1">
+      <CardContent className="space-y-2 sm:space-y-3 p-3 sm:p-4 md:p-5">
+        <h3 className="text-base sm:text-lg font-semibold text-foreground line-clamp-1" title={hall.name}>
           {hall.name}
         </h3>
         
-        <div className="flex items-start gap-2 text-sm text-muted-foreground">
-          <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-          <span className="line-clamp-2">{hall.address}</span>
+        <div className="flex items-start gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+          <MapPin className="mt-0.5 h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+          <span className="line-clamp-2 break-words">{hall.address}</span>
         </div>
         
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Users className="h-4 w-4" />
+        <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+          <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
           <span>{hall.capacity} Kişilik Kapasite</span>
         </div>
       </CardContent>
       
-      <CardFooter className="flex flex-col gap-2 border-t border-border bg-muted/30 p-4">
-        <div className="flex gap-2 w-full">
-          <Link href={`/dashboard/${hall.id}`} className="flex-1">
+      <CardFooter className="flex flex-col gap-2 border-t border-border bg-muted/30 p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row gap-2 w-full">
+          <Link href={`/dashboard/${hall.id}`} className="flex-1 w-full sm:w-auto">
             <Button
               variant="default"
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-8 sm:h-9 md:h-10 text-xs sm:text-sm"
             >
               Detayları Gör
             </Button>
           </Link>
-          {onEdit && (
-            <Button variant="outline" size="icon" onClick={() => onEdit(hall)} title="Düzenle">
-              <Edit className="h-4 w-4" />
-            </Button>
-          )}
-          {onDelete && (
-            <Button variant="outline" size="icon" onClick={() => onDelete(hall)} title="Sil" className="text-destructive hover:text-destructive">
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
+          <div className="flex gap-2 shrink-0">
+            {onEdit && (
+              <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10" onClick={() => onEdit(hall)} title="Düzenle">
+                <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              </Button>
+            )}
+            {onDelete && (
+              <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 text-destructive hover:text-destructive" onClick={() => onDelete(hall)} title="Sil">
+                <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              </Button>
+            )}
+          </div>
         </div>
         {canRequest && (
           <Link href={`/dashboard/talep-et?hallId=${hall.id}`} className="w-full">
-            <Button variant="outline" className="w-full gap-2">
-              <MessageSquarePlus className="h-4 w-4" />
+            <Button variant="outline" className="w-full gap-1.5 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm">
+              <MessageSquarePlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Talep Oluştur
             </Button>
           </Link>
