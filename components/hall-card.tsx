@@ -50,7 +50,7 @@ export function HallCard({ hall, onEdit, onDelete }: HallCardProps) {
       
       <CardFooter className="flex flex-col gap-2 border-t border-border bg-muted/30 p-3 sm:p-4">
         <div className="flex flex-col sm:flex-row gap-2 w-full">
-          <Link href={`/dashboard/${hall.id}`} className="flex-1 w-full sm:w-auto">
+          <Link href={`/dashboard/${hall.id}`} className="flex-1 w-full sm:w-auto" prefetch={false}>
             <Button
               variant="default"
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-8 sm:h-9 md:h-10 text-xs sm:text-sm"
@@ -71,14 +71,15 @@ export function HallCard({ hall, onEdit, onDelete }: HallCardProps) {
             )}
           </div>
         </div>
-        {canRequest && (
-          <Link href={`/dashboard/talep-et?hallId=${hall.id}`} className="w-full">
+        {/* Talep Et butonu yorum satırına alındı - Geri aktif etmek için yorum satırlarını kaldırın */}
+        {/* {canRequest && (
+          <Link href={`/dashboard/talep-et?hallId=${hall.id}`} className="w-full" prefetch={false}>
             <Button variant="outline" className="w-full gap-1.5 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm">
               <MessageSquarePlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Talep Oluştur
             </Button>
           </Link>
-        )}
+        )} */}
       </CardFooter>
     </Card>
   );

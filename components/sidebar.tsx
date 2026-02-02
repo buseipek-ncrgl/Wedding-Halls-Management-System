@@ -33,10 +33,10 @@ const navItems = [
   // { href: "/dashboard", label: "Ana Sayfa", icon: Home, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
   // { href: "/dashboard/takvim", label: "Takvim", icon: Calendar, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
   { href: "/dashboard/salonlar", label: "Salonlar", icon: Building2, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
-  { href: "/dashboard/talep-et", label: "Talep Et", icon: Plus, roles: ["Viewer"] as const },
+  // { href: "/dashboard/talep-et", label: "Talep Et", icon: Plus, roles: ["Viewer"] as const },
   // { href: "/dashboard/mesajlar", label: "Mesajlar", icon: MessageSquare, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
   // { href: "/dashboard/talepler", label: "Talepler", icon: FileText, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
-  { href: "/dashboard/kisiler", label: "Yönetim", icon: Users, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
+  // { href: "/dashboard/kisiler", label: "Yönetim", icon: Users, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
   { href: "/dashboard/ayarlar", label: "Ayarlar", icon: Settings, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
 ];
 

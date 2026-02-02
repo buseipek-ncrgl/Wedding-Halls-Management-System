@@ -13,7 +13,7 @@ import {
   CardAction,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { RequestModal } from "@/components/request-modal";
+// import { RequestModal } from "@/components/request-modal"; // Talep Oluştur butonu kaldırıldı
 import { getHallById } from "@/lib/api/halls";
 import { getSchedulesByHall, updateSchedule, createSchedule, deleteSchedule } from "@/lib/api/schedules";
 import { getRequests } from "@/lib/api/requests";
@@ -27,6 +27,9 @@ import type { WeddingHall, Schedule, Request } from "@/lib/types";
 import type { Center } from "@/lib/api/centers";
 import {
   ArrowLeft,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
   Building2,
   Calendar,
   Info,
@@ -38,6 +41,7 @@ import {
   Shield,
   Edit,
   Trash2,
+  Search,
 } from "lucide-react";
 import { toUserFriendlyMessage } from "@/lib/utils/api-error";
 import { toast } from "sonner";
@@ -61,6 +65,7 @@ import {
 } from "@/components/ui/select";
 
 const daysOfWeek = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
+const monthNamesShort = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
 const TIME_SLOTS = ["09:00", "10:30", "12:00", "14:00", "15:30", "17:00"];
 
 function todayLocal(date?: Date): string {
@@ -133,6 +138,8 @@ export default function HallDetailPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [scheduleToDelete, setScheduleToDelete] = useState<Schedule | null>(null);
   const [users, setUsers] = useState<User[]>([]);
+  const [weekOffset, setWeekOffset] = useState<number>(0); // Hafta navigasyonu için offset (0 = bugün, 1 = bir hafta sonra, -1 = bir hafta önce)
+  const [reservationSearchQuery, setReservationSearchQuery] = useState<string>("");
 
   const load = useCallback(async () => {
     try {
@@ -461,10 +468,13 @@ export default function HallDetailPage() {
   // Müsaitlik oranını hesapla
   // Haftalık görünüm için (7 gün x 6 slot = 42 toplam slot)
   // Schedule olmayan slotlar müsait sayılır
+  // weekOffset'e göre dinamik hafta günleri
   const weekDaysForStats = Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
-    date.setDate(date.getDate() + i);
-    return todayLocal(date);
+    const startOfWeek = new Date(date);
+    startOfWeek.setDate(date.getDate() + (weekOffset * 7)); // Hafta offset'ini uygula
+    startOfWeek.setDate(startOfWeek.getDate() + i); // Haftanın günlerini ekle
+    return todayLocal(startOfWeek);
   });
   
   let totalSlotsForWeek = 0;
@@ -495,15 +505,19 @@ export default function HallDetailPage() {
     ? Math.round((availableSlotsForWeek / totalSlotsForWeek) * 100)
     : 100; // Hiç slot yoksa %100 müsait
 
-  // Haftalık görünüm için günleri oluştur (bugünden itibaren 7 gün)
+  // Haftalık görünüm için günleri oluştur (weekOffset'e göre dinamik)
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
-    date.setDate(date.getDate() + i);
+    const startOfWeek = new Date(date);
+    startOfWeek.setDate(date.getDate() + (weekOffset * 7)); // Hafta offset'ini uygula
+    startOfWeek.setDate(startOfWeek.getDate() + i); // Haftanın günlerini ekle
+    const isToday = todayLocal() === todayLocal(startOfWeek);
     return {
-      date: todayLocal(date),
-      dayOfWeek: getDayOfWeek(todayLocal(date)),
-      displayDate: date.getDate(),
-      isToday: i === 0,
+      date: todayLocal(startOfWeek),
+      dayOfWeek: getDayOfWeek(todayLocal(startOfWeek)),
+      displayDate: startOfWeek.getDate(),
+      displayMonth: monthNamesShort[startOfWeek.getMonth()],
+      isToday,
     };
   });
 
@@ -518,7 +532,7 @@ export default function HallDetailPage() {
     <div className="space-y-4 sm:space-y-6 w-full">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full">
         <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
-          <Link href="/dashboard/salonlar">
+          <Link href="/dashboard/salonlar" prefetch={false}>
             <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 bg-transparent shrink-0">
               <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
@@ -535,6 +549,129 @@ export default function HallDetailPage() {
             <span className="sm:hidden">Yetki</span>
           </Badge>
         )}
+      </div>
+
+      {/* Rezervasyon arama kutusu - mobilde dar, PC'de tam genişlik */}
+      <div className="w-full max-w-full md:max-w-2xl lg:max-w-4xl xl:max-w-5xl space-y-3">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            type="text"
+            placeholder="Rezervasyon ara (etkinlik adı, kişi adı veya tarih)"
+            value={reservationSearchQuery}
+            onChange={(e) => setReservationSearchQuery(e.target.value)}
+            className="pl-9 h-9 sm:h-10 text-sm w-full"
+          />
+        </div>
+        {reservationSearchQuery.trim() && (() => {
+          const q = reservationSearchQuery.trim().toLowerCase();
+          const searchResults = allSchedules
+            .filter((s) => s.status === "Reserved")
+            .filter((s) => {
+              const name = (s.eventName || "").toLowerCase();
+              const owner = (s.eventOwner || "").toLowerCase();
+              const dateStr = (s.date || "").includes("T") ? s.date.split("T")[0] : (s.date || "");
+              return name.includes(q) || owner.includes(q) || dateStr.includes(q);
+            })
+            .map((s) => ({
+              ...s,
+              eventName: s.eventName || "Etkinlik Adı Yok",
+              eventOwner: s.eventOwner || "Bilinmiyor",
+              eventType: s.eventType,
+            }))
+            .sort((a, b) => {
+              const dateCompare = (a.date || "").localeCompare(b.date || "");
+              return dateCompare !== 0 ? dateCompare : (a.startTime || "").localeCompare(b.startTime || "");
+            });
+          return (
+            <Card className="border-border w-full">
+              <CardHeader className="px-3 sm:px-6 pb-2 sm:pb-3">
+                <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm md:text-base font-semibold">
+                  <Search className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                  Rezervasyon Arama Sonuçları ({searchResults.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-3 sm:px-6">
+                {searchResults.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-4">Eşleşen rezervasyon bulunamadı.</p>
+                ) : (
+                  <div className="space-y-2 sm:space-y-3 max-h-[400px] md:max-h-[500px] overflow-y-auto">
+                    {searchResults.map((reservation) => (
+                      <div
+                        key={reservation.id}
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 rounded-lg border border-border bg-card p-2 sm:p-3 hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                          <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs sm:text-sm font-medium text-foreground truncate" title={reservation.eventName}>
+                              {reservation.eventName}
+                            </p>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
+                              {reservation.date} • {formatTimeRange(reservation)} • {reservation.eventOwner}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 w-full sm:w-auto">
+                          <Badge variant="secondary" className="text-[10px] sm:text-xs px-2 sm:px-2.5 py-1 shrink-0 self-start sm:self-center">
+                            Dolu
+                          </Badge>
+                          <div className="flex items-center gap-2 flex-1 sm:flex-initial">
+                            {canEditSchedules && (isSuperAdmin || reservation.createdByUserId === user?.id) && (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 sm:h-9 text-xs sm:text-sm px-3 sm:px-4 flex-1 sm:flex-initial shrink-0"
+                                  onClick={() => {
+                                    setSelectedSchedule(reservation);
+                                    setSelectedDate(reservation.date);
+                                    setSelectedTimeSlot(reservation.startTime.slice(0, 5));
+                                    setScheduleStatus(reservation.status);
+                                    setEventType(reservation.eventType);
+                                    setEventName(reservation.eventName || "");
+                                    setEventOwner(reservation.eventOwner || "");
+                                    setScheduleDialogOpen(true);
+                                  }}
+                                >
+                                  <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                                  Düzenle
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  className="h-8 sm:h-9 text-xs sm:text-sm px-3 sm:px-4 flex-1 sm:flex-initial shrink-0"
+                                  onClick={() => {
+                                    setScheduleToDelete(reservation);
+                                    setDeleteDialogOpen(true);
+                                  }}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                                  Sil
+                                </Button>
+                              </>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 sm:h-9 text-xs sm:text-sm px-3 sm:px-4 flex-1 sm:flex-initial shrink-0"
+                              onClick={() => {
+                                setSelectedSchedule(reservation);
+                                setDetailDialogOpen(true);
+                              }}
+                            >
+                              Detay
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })()}
       </div>
 
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
@@ -602,9 +739,10 @@ export default function HallDetailPage() {
             </Card>
           </div>
 
-          {isViewer(user?.role) && (
+          {/* Talep Oluştur butonu kaldırıldı */}
+          {/* {isViewer(user?.role) && (
             <RequestModal hallId={hall.id} hallName={hall.name} />
-          )}
+          )} */}
         </div>
       </div>
 
@@ -644,10 +782,42 @@ export default function HallDetailPage() {
         <Card className="border-border bg-card lg:col-span-2">
           <CardHeader className="px-3 sm:px-6 pb-2 sm:pb-3">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-              <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm md:text-base font-semibold text-foreground">
-                <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5 text-primary shrink-0" />
-                <span className="truncate">Müsaitlik Zaman Çizelgesi</span>
-              </CardTitle>
+              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm md:text-base font-semibold text-foreground">
+                  <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5 text-primary shrink-0" />
+                  <span className="truncate">Müsaitlik Zaman Çizelgesi</span>
+                </CardTitle>
+                <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9"
+                    onClick={() => setWeekOffset(prev => prev - 1)}
+                    title="Önceki Hafta"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 sm:h-8 md:h-9 text-[10px] sm:text-xs px-2 sm:px-3"
+                    onClick={() => setWeekOffset(0)}
+                    disabled={weekOffset === 0}
+                    title="Bugün"
+                  >
+                    Bugün
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9"
+                    onClick={() => setWeekOffset(prev => prev + 1)}
+                    title="Sonraki Hafta"
+                  >
+                    <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  </Button>
+                </div>
+              </div>
               {!canEditSchedules && (
                 <Badge variant="outline" className="text-[9px] sm:text-[10px] md:text-xs shrink-0">
                   Sadece Görüntüleme
@@ -680,7 +850,7 @@ export default function HallDetailPage() {
                               "text-[8px] sm:text-[9px] md:text-[10px] text-muted-foreground",
                               day.isToday && "text-primary font-bold"
                             )}>
-                              {day.displayDate}
+                              {day.displayDate} {day.displayMonth}
                             </span>
                           </div>
                         </th>
@@ -729,10 +899,9 @@ export default function HallDetailPage() {
                                     <span className="lg:hidden">M</span>
                                   </>
                                 ) : (
-                                  <>
-                                    <span className="hidden lg:inline truncate max-w-[28px] sm:max-w-[35px] md:max-w-[45px] lg:max-w-[60px]">{eventName && eventName.length > 6 ? eventName.substring(0, 5) + "..." : eventName || "Dolu"}</span>
-                                    <span className="lg:hidden">D</span>
-                                  </>
+                                  <span className="truncate max-w-full px-0.5 sm:px-1" title={eventName || "Dolu"}>
+                                    {eventName || "Dolu"}
+                                  </span>
                                 )}
                               </div>
                             </td>
@@ -751,14 +920,15 @@ export default function HallDetailPage() {
       {/* Schedule Düzenleme Dialog'u */}
       {canEditSchedules && (
         <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
-          <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
-            <DialogHeader className="px-1 sm:px-0">
+          <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] flex flex-col p-0 overflow-hidden">
+            <DialogHeader className="px-3 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 flex-shrink-0 border-b">
               <DialogTitle className="text-base sm:text-lg">Müsaitlik Düzenle</DialogTitle>
               <DialogDescription className="text-xs sm:text-sm">
                 {selectedDate && selectedTimeSlot && `${selectedDate} tarihinde ${selectedTimeSlot} saatinde müsaitlik durumunu ayarlayın`}
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-2.5 sm:space-y-3 md:space-y-4 py-2 sm:py-4 px-1 sm:px-0">
+            <div className="flex-1 overflow-y-auto px-3 sm:px-6">
+              <div className="space-y-2.5 sm:space-y-3 md:space-y-4 py-3 sm:py-4">
               {center && hall && (
                 <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
                   <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
@@ -861,7 +1031,8 @@ export default function HallDetailPage() {
                 </>
               )}
             </div>
-            <DialogFooter className="flex-col sm:flex-row gap-2 px-1 sm:px-0 pt-2 sm:pt-0">
+            </div>
+            <DialogFooter className="px-3 sm:px-6 pb-4 sm:pb-6 pt-3 sm:pt-4 border-t flex-shrink-0 bg-background flex-col sm:flex-row gap-2">
               <Button
                 variant="outline"
                 className="w-full sm:w-auto h-9 sm:h-10 text-sm"
@@ -887,8 +1058,8 @@ export default function HallDetailPage() {
 
       {/* Detay Dialog'u (Viewer ve diğerleri için) */}
       <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="px-1 sm:px-0">
+        <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] flex flex-col p-0 overflow-hidden">
+          <DialogHeader className="px-3 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 flex-shrink-0 border-b">
             <DialogTitle className="text-base sm:text-lg">Rezervasyon Detayları</DialogTitle>
             <DialogDescription className="text-xs sm:text-sm">
               {selectedSchedule && (
@@ -899,50 +1070,52 @@ export default function HallDetailPage() {
             </DialogDescription>
           </DialogHeader>
           {selectedSchedule && (
-            <div className="space-y-2.5 sm:space-y-3 md:space-y-4 py-2 sm:py-4 px-1 sm:px-0">
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label className="text-xs sm:text-sm font-semibold">Etkinlik Adı</Label>
-                <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
-                  {selectedSchedule.eventName || "Etkinlik Adı Yok"}
-                </div>
-              </div>
-              {selectedSchedule.eventOwner && (
+            <div className="flex-1 overflow-y-auto px-3 sm:px-6">
+              <div className="space-y-2.5 sm:space-y-3 md:space-y-4 py-3 sm:py-4">
                 <div className="space-y-1.5 sm:space-y-2">
-                  <Label className="text-xs sm:text-sm font-semibold">Rezervasyon Yapan</Label>
+                  <Label className="text-xs sm:text-sm font-semibold">Etkinlik Adı</Label>
                   <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
-                    {selectedSchedule.eventOwner}
+                    {selectedSchedule.eventName || "Etkinlik Adı Yok"}
                   </div>
                 </div>
-              )}
-              {selectedSchedule.eventType !== undefined && (
+                {selectedSchedule.eventOwner && (
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm font-semibold">Rezervasyon Yapan</Label>
+                    <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
+                      {selectedSchedule.eventOwner}
+                    </div>
+                  </div>
+                )}
+                {selectedSchedule.eventType !== undefined && (
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm font-semibold">Etkinlik Tipi</Label>
+                    <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
+                      {getEventTypeName(selectedSchedule.eventType)}
+                    </div>
+                  </div>
+                )}
                 <div className="space-y-1.5 sm:space-y-2">
-                  <Label className="text-xs sm:text-sm font-semibold">Etkinlik Tipi</Label>
+                  <Label className="text-xs sm:text-sm font-semibold">Tarih</Label>
                   <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
-                    {getEventTypeName(selectedSchedule.eventType)}
+                    {selectedSchedule.date}
                   </div>
                 </div>
-              )}
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label className="text-xs sm:text-sm font-semibold">Tarih</Label>
-                <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
-                  {selectedSchedule.date}
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label className="text-xs sm:text-sm font-semibold">Saat Aralığı</Label>
+                  <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
+                    {formatTimeRange(selectedSchedule)}
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label className="text-xs sm:text-sm font-semibold">Saat Aralığı</Label>
-                <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
-                  {formatTimeRange(selectedSchedule)}
-                </div>
-              </div>
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label className="text-xs sm:text-sm font-semibold">Salon</Label>
-                <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
-                  {hall?.name || "Salon Adı Yok"}
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label className="text-xs sm:text-sm font-semibold">Salon</Label>
+                  <div className="rounded-md border border-border bg-muted px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
+                    {hall?.name || "Salon Adı Yok"}
+                  </div>
                 </div>
               </div>
             </div>
           )}
-          <DialogFooter className="flex flex-col sm:flex-row gap-2 px-1 sm:px-0 pt-2 sm:pt-0 sticky bottom-0 bg-background border-t border-border -mx-6 -mb-6 px-6 pb-4 sm:border-t-0 sm:static sm:mx-0 sm:mb-0 sm:px-0 sm:pb-0">
+          <DialogFooter className="px-3 sm:px-6 pb-4 sm:pb-6 pt-3 sm:pt-4 border-t flex-shrink-0 bg-background flex-col sm:flex-row gap-2 sticky bottom-0">
             {/* Düzenle / Sil sadece kendi rezervasyonunda veya SuperAdmin (takvim sayfasındaki gibi) */}
             {canEditSchedules && selectedSchedule && (isSuperAdmin || selectedSchedule.createdByUserId === user?.id) && (
               <>
@@ -990,26 +1163,28 @@ export default function HallDetailPage() {
       {/* Silme Onay Dialog'u */}
       {canEditSchedules && (
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
-            <DialogHeader className="px-1 sm:px-0">
+          <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] flex flex-col p-0 overflow-hidden">
+            <DialogHeader className="px-3 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 flex-shrink-0 border-b">
               <DialogTitle className="text-base sm:text-lg">Rezervasyonu Sil</DialogTitle>
               <DialogDescription className="text-xs sm:text-sm">
                 Bu rezervasyonu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
               </DialogDescription>
             </DialogHeader>
             {scheduleToDelete && (
-              <div className="space-y-2 py-2 sm:py-4 px-1 sm:px-0">
-                <div className="rounded-md border border-border bg-muted p-2 sm:p-3">
-                  <p className="text-xs sm:text-sm font-medium">
-                    {scheduleToDelete.eventName || "Etkinlik Adı Yok"}
-                  </p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-                    {hall?.name || "Salon"} • {scheduleToDelete.date} • {formatTimeRange(scheduleToDelete)}
-                  </p>
+              <div className="flex-1 overflow-y-auto px-3 sm:px-6">
+                <div className="space-y-2 py-3 sm:py-4">
+                  <div className="rounded-md border border-border bg-muted p-2 sm:p-3">
+                    <p className="text-xs sm:text-sm font-medium">
+                      {scheduleToDelete.eventName || "Etkinlik Adı Yok"}
+                    </p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                      {hall?.name || "Salon"} • {scheduleToDelete.date} • {formatTimeRange(scheduleToDelete)}
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
-            <DialogFooter className="flex-col sm:flex-row gap-2 px-1 sm:px-0 pt-2 sm:pt-0">
+            <DialogFooter className="px-3 sm:px-6 pb-4 sm:pb-6 pt-3 sm:pt-4 border-t flex-shrink-0 bg-background flex-col sm:flex-row gap-2">
               <Button variant="outline" className="w-full sm:w-auto h-9 sm:h-10 text-sm" onClick={() => {
                 setDeleteDialogOpen(false);
                 setScheduleToDelete(null);
