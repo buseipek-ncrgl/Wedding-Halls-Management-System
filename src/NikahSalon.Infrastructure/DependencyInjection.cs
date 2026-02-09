@@ -50,6 +50,7 @@ public static class DependencyInjection
         services.AddScoped<ICenterRepository, CenterRepository>();
         services.AddScoped<IWeddingHallRepository, WeddingHallRepository>();
         services.AddScoped<IHallAccessRepository, HallAccessRepository>();
+        services.AddScoped<ICenterAccessRepository, CenterAccessRepository>();
         services.AddScoped<IScheduleRepository, ScheduleRepository>();
         services.AddScoped<IRequestRepository, RequestRepository>();
         services.AddScoped<IMessageRepository, MessageRepository>();

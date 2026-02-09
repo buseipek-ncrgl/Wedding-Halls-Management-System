@@ -11,6 +11,7 @@ public static class SeedData
     public const string RoleViewer = "Viewer";
     public const string RoleEditor = "Editor";
     public const string RoleSuperAdmin = "SuperAdmin";
+    public const string RoleMerkezSorumlusu = "MerkezSorumlusu";
 
     public static async Task SeedAsync(AppDbContext db, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole<Guid>> roleManager)
     {
@@ -26,6 +27,10 @@ public static class SeedData
         if (!await roleManager.RoleExistsAsync(RoleSuperAdmin))
         {
             await roleManager.CreateAsync(new IdentityRole<Guid>(RoleSuperAdmin));
+        }
+        if (!await roleManager.RoleExistsAsync(RoleMerkezSorumlusu))
+        {
+            await roleManager.CreateAsync(new IdentityRole<Guid>(RoleMerkezSorumlusu));
         }
 
         // Viewer kullanıcısını oluştur
@@ -241,6 +246,52 @@ public static class SeedData
                 existingOzel.Department = EventType.Ozel;
                 await userManager.UpdateAsync(existingOzel);
                 await db.SaveChangesAsync();
+            }
+        }
+
+        // Merkez Sorumlusu - Nikah (sadece görüntüleme, Nikah merkezlerine atanır)
+        var merkezNikahEmail = "merkezsorumlusu.nikah@nikahsalon.local";
+        if (await userManager.FindByEmailAsync(merkezNikahEmail) == null)
+        {
+            var merkezNikah = new ApplicationUser
+            {
+                Id = Guid.NewGuid(),
+                UserName = merkezNikahEmail,
+                Email = merkezNikahEmail,
+                FullName = "Merkez Sorumlusu (Nikah)",
+                EmailConfirmed = true
+            };
+            var result = await userManager.CreateAsync(merkezNikah, "MerkezNikah1!");
+            if (result.Succeeded)
+            {
+                await userManager.UpdateSecurityStampAsync(merkezNikah);
+                await db.SaveChangesAsync();
+                var saved = await userManager.FindByIdAsync(merkezNikah.Id.ToString());
+                if (saved != null)
+                    await userManager.AddToRoleAsync(saved, RoleMerkezSorumlusu);
+            }
+        }
+
+        // Merkez Sorumlusu - Toplantı (sadece görüntüleme, Toplantı merkezlerine atanır)
+        var merkezToplantiEmail = "merkezsorumlusu.toplanti@nikahsalon.local";
+        if (await userManager.FindByEmailAsync(merkezToplantiEmail) == null)
+        {
+            var merkezToplanti = new ApplicationUser
+            {
+                Id = Guid.NewGuid(),
+                UserName = merkezToplantiEmail,
+                Email = merkezToplantiEmail,
+                FullName = "Merkez Sorumlusu (Toplantı)",
+                EmailConfirmed = true
+            };
+            var result = await userManager.CreateAsync(merkezToplanti, "MerkezToplanti1!");
+            if (result.Succeeded)
+            {
+                await userManager.UpdateSecurityStampAsync(merkezToplanti);
+                await db.SaveChangesAsync();
+                var saved = await userManager.FindByIdAsync(merkezToplanti.Id.ToString());
+                if (saved != null)
+                    await userManager.AddToRoleAsync(saved, RoleMerkezSorumlusu);
             }
         }
 

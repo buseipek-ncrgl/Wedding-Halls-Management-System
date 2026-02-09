@@ -15,6 +15,7 @@ public interface IRequestRepository
         string? sortBy, 
         string? sortOrder,
         Guid? createdByUserId = null,
+        IReadOnlyList<Guid>? weddingHallIds = null,
         CancellationToken ct = default);
     Task<Request> AddAsync(Request entity, CancellationToken ct = default);
     Task UpdateAsync(Request entity, CancellationToken ct = default);

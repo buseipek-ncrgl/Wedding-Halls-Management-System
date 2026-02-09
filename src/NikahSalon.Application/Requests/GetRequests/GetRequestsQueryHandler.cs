@@ -40,6 +40,7 @@ public sealed class GetRequestsQueryHandler
             sortBy, 
             sortOrder,
             query.CreatedByUserId,
+            query.WeddingHallIds,
             ct);
         
         var dtos = items.Select(r => new RequestDto

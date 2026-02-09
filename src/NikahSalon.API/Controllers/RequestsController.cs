@@ -17,6 +17,7 @@ using NikahSalon.Application.Requests.GetRequestById;
 using NikahSalon.Application.Requests.GetRequests;
 using NikahSalon.Application.Requests.RejectRequest;
 using NikahSalon.Application.Requests.UpdateRequest;
+using NikahSalon.Application.Interfaces;
 
 namespace NikahSalon.API.Controllers;
 
@@ -39,6 +40,8 @@ public sealed class RequestsController : ControllerBase
     private readonly DeleteMessageCommandHandler _deleteMessageHandler;
     private readonly GetMessagesByRequestIdQueryHandler _getMessagesHandler;
     private readonly CreateMessageCommandValidator _createMessageValidator;
+    private readonly ICenterAccessRepository _centerAccessRepository;
+    private readonly IWeddingHallRepository _hallRepository;
 
     public RequestsController(
         CreateRequestCommandHandler createHandler,
@@ -54,7 +57,9 @@ public sealed class RequestsController : ControllerBase
         CreateMessageCommandHandler createMessageHandler,
         DeleteMessageCommandHandler deleteMessageHandler,
         GetMessagesByRequestIdQueryHandler getMessagesHandler,
-        CreateMessageCommandValidator createMessageValidator)
+        CreateMessageCommandValidator createMessageValidator,
+        ICenterAccessRepository centerAccessRepository,
+        IWeddingHallRepository hallRepository)
     {
         _createHandler = createHandler;
         _getRequestsHandler = getRequestsHandler;
@@ -70,6 +75,8 @@ public sealed class RequestsController : ControllerBase
         _deleteMessageHandler = deleteMessageHandler;
         _getMessagesHandler = getMessagesHandler;
         _createMessageValidator = createMessageValidator;
+        _centerAccessRepository = centerAccessRepository;
+        _hallRepository = hallRepository;
     }
 
     [HttpPost]
@@ -111,7 +118,7 @@ public sealed class RequestsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "Editor,Viewer,SuperAdmin")]
+    [Authorize(Roles = "Editor,Viewer,SuperAdmin,MerkezSorumlusu")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(
         [FromQuery] int page = 1,
@@ -133,9 +140,22 @@ public sealed class RequestsController : ControllerBase
         
         // Viewer can only see their own requests (SuperAdmin and Editor can see all)
         Guid? createdByUserId = null;
-        if (roleClaim == "Viewer" && !string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var userId))
+        IReadOnlyList<Guid>? weddingHallIds = null;
+        if (roleClaim == "Viewer" && !string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var viewerId))
         {
-            createdByUserId = userId;
+            createdByUserId = viewerId;
+        }
+        // MerkezSorumlusu: only requests for halls in their assigned centers
+        else if (roleClaim == "MerkezSorumlusu" && !string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var msUserId))
+        {
+            var centerIds = await _centerAccessRepository.GetAccessibleCenterIdsAsync(msUserId, ct);
+            var allHallIds = new List<Guid>();
+            foreach (var cid in centerIds)
+            {
+                var halls = await _hallRepository.GetByCenterIdAsync(cid, ct);
+                allHallIds.AddRange(halls.Select(h => h.Id));
+            }
+            weddingHallIds = allHallIds;
         }
 
         var query = new GetRequestsQuery
@@ -145,7 +165,8 @@ public sealed class RequestsController : ControllerBase
             Status = status.HasValue ? (NikahSalon.Domain.Enums.RequestStatus?)status.Value : null,
             SortBy = sortBy,
             SortOrder = sortOrder,
-            CreatedByUserId = createdByUserId
+            CreatedByUserId = createdByUserId,
+            WeddingHallIds = weddingHallIds
         };
         var result = await _getRequestsHandler.HandleAsync(query, ct);
         return Ok(result);
@@ -168,9 +189,20 @@ public sealed class RequestsController : ControllerBase
         if (roleClaim == "Viewer" && !string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var userId))
         {
             if (request.CreatedByUserId != userId)
-            {
                 return Forbid();
+        }
+        // MerkezSorumlusu can only see requests for halls in their assigned centers
+        else if (roleClaim == "MerkezSorumlusu" && !string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var msUserId))
+        {
+            var centerIds = await _centerAccessRepository.GetAccessibleCenterIdsAsync(msUserId, ct);
+            var allowedHallIds = new HashSet<Guid>();
+            foreach (var cid in centerIds)
+            {
+                var halls = await _hallRepository.GetByCenterIdAsync(cid, ct);
+                foreach (var h in halls) allowedHallIds.Add(h.Id);
             }
+            if (!allowedHallIds.Contains(request.WeddingHallId))
+                return Forbid();
         }
         
         return Ok(request);

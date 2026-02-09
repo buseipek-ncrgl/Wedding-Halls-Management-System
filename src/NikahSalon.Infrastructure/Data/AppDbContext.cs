@@ -21,6 +21,7 @@ public sealed class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRo
     public DbSet<Center> Centers => Set<Center>();
     public DbSet<WeddingHall> WeddingHalls => Set<WeddingHall>();
     public DbSet<HallAccess> HallAccesses => Set<HallAccess>();
+    public DbSet<CenterAccess> CenterAccesses => Set<CenterAccess>();
     public DbSet<Schedule> Schedules => Set<Schedule>();
     public DbSet<Request> Requests => Set<Request>();
     public DbSet<Message> Messages => Set<Message>();
@@ -76,6 +77,21 @@ public sealed class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRo
             e.HasOne(x => x.Hall)
                 .WithMany()
                 .HasForeignKey(x => x.HallId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<CenterAccess>(e =>
+        {
+            e.ToTable("CenterAccesses");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.CenterId).IsRequired();
+            e.Property(x => x.UserId).IsRequired();
+            e.Property(x => x.CreatedAt).IsRequired();
+            if (IsSqlServer) e.Property(x => x.CreatedAt).HasConversion(DateTimeToOffsetConverter);
+            e.HasIndex(x => new { x.CenterId, x.UserId }).IsUnique();
+            e.HasOne(x => x.Center)
+                .WithMany()
+                .HasForeignKey(x => x.CenterId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

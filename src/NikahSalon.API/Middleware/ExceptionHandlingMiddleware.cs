@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using FluentValidation;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using NikahSalon.API.Models;
 
@@ -60,6 +61,15 @@ public sealed class ExceptionHandlingMiddleware
                 statusCode = HttpStatusCode.Unauthorized;
                 message = ex.Message;
                 errors = Array.Empty<string>();
+                break;
+            case DbUpdateException dbEx:
+                statusCode = HttpStatusCode.InternalServerError;
+                message = _environment.IsDevelopment()
+                    ? $"Veritabanı hatası: {dbEx.InnerException?.Message ?? dbEx.Message}"
+                    : "Veritabanı güncellenemedi. Lütfen migration'ları çalıştırdığınızdan emin olun.";
+                errors = _environment.IsDevelopment() && dbEx.InnerException != null
+                    ? new[] { dbEx.InnerException.Message }
+                    : Array.Empty<string>();
                 break;
             default:
                 statusCode = HttpStatusCode.InternalServerError;

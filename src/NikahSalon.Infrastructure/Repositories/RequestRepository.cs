@@ -39,6 +39,7 @@ public sealed class RequestRepository : IRequestRepository
         string? sortBy, 
         string? sortOrder,
         Guid? createdByUserId = null,
+        IReadOnlyList<Guid>? weddingHallIds = null,
         CancellationToken ct = default)
     {
         var query = _db.Requests.AsNoTracking();
@@ -53,6 +54,13 @@ public sealed class RequestRepository : IRequestRepository
         if (createdByUserId.HasValue)
         {
             query = query.Where(x => x.CreatedByUserId == createdByUserId.Value);
+        }
+
+        // Apply hall filter if provided (for MerkezSorumlusu - only requests for their centers' halls)
+        if (weddingHallIds is { Count: > 0 })
+        {
+            var hallSet = weddingHallIds.ToHashSet();
+            query = query.Where(x => hallSet.Contains(x.WeddingHallId));
         }
 
         // Get total count before pagination

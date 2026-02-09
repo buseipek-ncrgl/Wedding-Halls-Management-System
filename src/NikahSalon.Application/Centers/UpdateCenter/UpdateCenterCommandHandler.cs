@@ -10,15 +10,18 @@ public sealed class UpdateCenterCommandHandler
     private readonly ICenterRepository _repository;
     private readonly IWeddingHallRepository _hallRepository;
     private readonly IHallAccessRepository _hallAccessRepository;
+    private readonly ICenterAccessRepository _centerAccessRepository;
 
     public UpdateCenterCommandHandler(
         ICenterRepository repository,
         IWeddingHallRepository hallRepository,
-        IHallAccessRepository hallAccessRepository)
+        IHallAccessRepository hallAccessRepository,
+        ICenterAccessRepository centerAccessRepository)
     {
         _repository = repository;
         _hallRepository = hallRepository;
         _hallAccessRepository = hallAccessRepository;
+        _centerAccessRepository = centerAccessRepository;
     }
 
     private static List<Guid> ParseAllowedUserIds(string description)
@@ -42,6 +45,24 @@ public sealed class UpdateCenterCommandHandler
         return ids;
     }
 
+    private static List<Guid> ParseMerkezSorumlusuIds(string description)
+    {
+        if (string.IsNullOrWhiteSpace(description))
+            return new List<Guid>();
+
+        var match = Regex.Match(description, @"Merkez Sorumluları:\s*\[([^\]]+)\]");
+        if (!match.Success)
+            return new List<Guid>();
+
+        var idsString = match.Groups[1].Value;
+        return idsString.Split(',')
+            .Select(id => id.Trim())
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Where(id => Guid.TryParse(id, out _))
+            .Select(Guid.Parse)
+            .ToList();
+    }
+
     public async Task<CenterDto?> HandleAsync(UpdateCenterCommand command, CancellationToken ct = default)
     {
         var existing = await _repository.GetByIdAsync(command.Id, ct);
@@ -49,6 +70,8 @@ public sealed class UpdateCenterCommandHandler
 
         var oldAllowedUserIds = ParseAllowedUserIds(existing.Description);
         var newAllowedUserIds = ParseAllowedUserIds(command.Description);
+        var oldMerkezSorumlusuIds = ParseMerkezSorumlusuIds(existing.Description);
+        var newMerkezSorumlusuIds = ParseMerkezSorumlusuIds(command.Description);
 
         existing.Name = command.Name;
         existing.Address = command.Address;
@@ -100,6 +123,24 @@ public sealed class UpdateCenterCommandHandler
                 {
                     await _hallAccessRepository.AddRangeAsync(accesses, ct);
                 }
+            }
+        }
+
+        // Merkez Sorumluları erişimini güncelle
+        var merkezSorumlusuChanged = !oldMerkezSorumlusuIds.SequenceEqual(newMerkezSorumlusuIds);
+        if (merkezSorumlusuChanged)
+        {
+            await _centerAccessRepository.RemoveByCenterIdAsync(command.Id, ct);
+            if (newMerkezSorumlusuIds.Count > 0)
+            {
+                var centerAccesses = newMerkezSorumlusuIds.Select(userId => new CenterAccess
+                {
+                    Id = Guid.NewGuid(),
+                    CenterId = command.Id,
+                    UserId = userId,
+                    CreatedAt = DateTime.UtcNow
+                }).ToList();
+                await _centerAccessRepository.AddRangeAsync(centerAccesses, ct);
             }
         }
 

@@ -9,38 +9,50 @@ public sealed class GetHallsQueryHandler
 {
     private readonly IWeddingHallRepository _repository;
     private readonly IHallAccessRepository _hallAccessRepository;
+    private readonly ICenterAccessRepository _centerAccessRepository;
 
     public GetHallsQueryHandler(
         IWeddingHallRepository repository,
-        IHallAccessRepository hallAccessRepository)
+        IHallAccessRepository hallAccessRepository,
+        ICenterAccessRepository centerAccessRepository)
     {
         _repository = repository;
         _hallAccessRepository = hallAccessRepository;
+        _centerAccessRepository = centerAccessRepository;
     }
 
     public async Task<PagedResult<WeddingHallDto>> HandleAsync(GetHallsQuery query, CancellationToken ct = default)
     {
-        // Validate pagination parameters
         var page = query.Page < 1 ? 1 : query.Page;
         var pageSize = query.PageSize < 1 ? 10 : query.PageSize;
-        if (pageSize > 100) pageSize = 100; // Max page size limit
+        if (pageSize > 100) pageSize = 100;
 
-        // SuperAdmin ve Viewer tüm salonları görebilir, Editor sadece erişimi olan salonları görebilir
+        // SuperAdmin ve Viewer tüm salonları görebilir; Editor salon bazlı; MerkezSorumlusu merkez bazlı (sadece görüntüleme)
         IReadOnlyList<Guid>? accessibleHallIds = null;
+        IReadOnlyList<Guid>? accessibleCenterIds = null;
         if (query.CallerRole == "Editor" && query.CallerUserId.HasValue)
         {
             accessibleHallIds = await _hallAccessRepository.GetAccessibleHallIdsAsync(query.CallerUserId.Value, ct);
         }
+        if (query.CallerRole == "MerkezSorumlusu" && query.CallerUserId.HasValue)
+        {
+            accessibleCenterIds = await _centerAccessRepository.GetAccessibleCenterIdsAsync(query.CallerUserId.Value, ct);
+        }
 
         var (halls, totalCount) = await _repository.GetPagedAsync(page, pageSize, query.Search, ct);
         
-        // Editor ise sadece erişimi olan salonları filtrele (SuperAdmin ve Viewer için filtreleme yok)
         var filteredHalls = halls;
         if (query.CallerRole == "Editor" && accessibleHallIds != null)
         {
             var accessibleSet = accessibleHallIds.ToHashSet();
             filteredHalls = halls.Where(h => accessibleSet.Contains(h.Id)).ToList();
-            totalCount = filteredHalls.Count; // Filtreleme sonrası toplam sayı
+            totalCount = filteredHalls.Count;
+        }
+        else if (query.CallerRole == "MerkezSorumlusu" && accessibleCenterIds != null)
+        {
+            var centerSet = accessibleCenterIds.ToHashSet();
+            filteredHalls = halls.Where(h => centerSet.Contains(h.CenterId)).ToList();
+            totalCount = filteredHalls.Count;
         }
         
         var items = filteredHalls.Select(h => new WeddingHallDto

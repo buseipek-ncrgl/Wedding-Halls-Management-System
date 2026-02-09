@@ -10,15 +10,18 @@ public sealed class CreateCenterCommandHandler
     private readonly ICenterRepository _repository;
     private readonly IWeddingHallRepository _hallRepository;
     private readonly IHallAccessRepository _hallAccessRepository;
+    private readonly ICenterAccessRepository _centerAccessRepository;
 
     public CreateCenterCommandHandler(
         ICenterRepository repository,
         IWeddingHallRepository hallRepository,
-        IHallAccessRepository hallAccessRepository)
+        IHallAccessRepository hallAccessRepository,
+        ICenterAccessRepository centerAccessRepository)
     {
         _repository = repository;
         _hallRepository = hallRepository;
         _hallAccessRepository = hallAccessRepository;
+        _centerAccessRepository = centerAccessRepository;
     }
 
     private static List<Guid> ParseAllowedUserIds(string description)
@@ -40,6 +43,24 @@ public sealed class CreateCenterCommandHandler
             .ToList();
 
         return ids;
+    }
+
+    private static List<Guid> ParseMerkezSorumlusuIds(string description)
+    {
+        if (string.IsNullOrWhiteSpace(description))
+            return new List<Guid>();
+
+        var match = Regex.Match(description, @"Merkez Sorumluları:\s*\[([^\]]+)\]");
+        if (!match.Success)
+            return new List<Guid>();
+
+        var idsString = match.Groups[1].Value;
+        return idsString.Split(',')
+            .Select(id => id.Trim())
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Where(id => Guid.TryParse(id, out _))
+            .Select(Guid.Parse)
+            .ToList();
     }
 
     public async Task<CenterDto> HandleAsync(CreateCenterCommand command, CancellationToken ct = default)
@@ -82,6 +103,20 @@ public sealed class CreateCenterCommandHandler
             {
                 await _hallAccessRepository.AddRangeAsync(accesses, ct);
             }
+        }
+
+        // Merkez Sorumluları için CenterAccess kayıtları (sadece görüntüleme)
+        var merkezSorumlusuIds = ParseMerkezSorumlusuIds(command.Description);
+        if (merkezSorumlusuIds.Count > 0)
+        {
+            var centerAccesses = merkezSorumlusuIds.Select(userId => new CenterAccess
+            {
+                Id = Guid.NewGuid(),
+                CenterId = created.Id,
+                UserId = userId,
+                CreatedAt = DateTime.UtcNow
+            }).ToList();
+            await _centerAccessRepository.AddRangeAsync(centerAccesses, ct);
         }
 
         return new CenterDto

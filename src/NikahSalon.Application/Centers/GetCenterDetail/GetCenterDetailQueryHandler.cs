@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Text.RegularExpressions;
 using NikahSalon.Application.Interfaces;
 using NikahSalon.Domain.Enums;
 
@@ -10,17 +11,20 @@ public sealed class GetCenterDetailQueryHandler
     private readonly IWeddingHallRepository _hallRepository;
     private readonly IScheduleRepository _scheduleRepository;
     private readonly IHallAccessRepository _hallAccessRepository;
+    private readonly ICenterAccessRepository _centerAccessRepository;
 
     public GetCenterDetailQueryHandler(
         ICenterRepository centerRepository,
         IWeddingHallRepository hallRepository,
         IScheduleRepository scheduleRepository,
-        IHallAccessRepository hallAccessRepository)
+        IHallAccessRepository hallAccessRepository,
+        ICenterAccessRepository centerAccessRepository)
     {
         _centerRepository = centerRepository;
         _hallRepository = hallRepository;
         _scheduleRepository = scheduleRepository;
         _hallAccessRepository = hallAccessRepository;
+        _centerAccessRepository = centerAccessRepository;
     }
 
     public async Task<CenterDetailDto?> HandleAsync(GetCenterDetailQuery query, CancellationToken ct = default)
@@ -31,23 +35,35 @@ public sealed class GetCenterDetailQueryHandler
         // Bu merkeze ait salonları getir
         var centerHallsList = (await _hallRepository.GetByCenterIdAsync(center.Id, ct)).ToList();
         
-        // SuperAdmin ve Viewer tüm salonları görebilir, Editor sadece erişimi olan salonları görebilir
-        if (query.CallerRole == "Editor" && query.CallerUserId.HasValue)
+        // MerkezSorumlusu sadece atandığı merkezleri görebilir (tüm salonları görüntüleme)
+        if (query.CallerRole == "MerkezSorumlusu" && query.CallerUserId.HasValue)
         {
-            // Editor ise sadece erişimi olan salonları görebilir
+            var accessibleCenterIds = await _centerAccessRepository.GetAccessibleCenterIdsAsync(query.CallerUserId.Value, ct);
+            if (!accessibleCenterIds.Contains(center.Id))
+                return null;
+            // Tüm salonları göster (düzenleme yok)
+        }
+        // SuperAdmin ve Viewer tüm salonları görebilir, Editor sadece erişimi olan salonları görebilir
+        else if (query.CallerRole == "Editor" && query.CallerUserId.HasValue)
+        {
             var accessibleHallIds = await _hallAccessRepository.GetAccessibleHallIdsAsync(query.CallerUserId.Value, ct);
             var accessibleSet = accessibleHallIds.ToHashSet();
             
-            // Bu merkeze erişimi var mı kontrol et
-            var hasAccess = centerHallsList.Any(h => accessibleSet.Contains(h.Id));
-            if (!hasAccess)
-            {
-                // Erişim yoksa null döndür
-                return null;
-            }
+            // Merkezin description'ından editörleri kontrol et
+            var allowedUserIds = ParseAllowedUserIds(center.Description);
+            var hasAccessFromDescription = allowedUserIds.Contains(query.CallerUserId.Value);
             
-            // Sadece erişimi olan salonları filtrele
-            centerHallsList = centerHallsList.Where(h => accessibleSet.Contains(h.Id)).ToList();
+            var hasAccessFromHalls = centerHallsList.Any(h => accessibleSet.Contains(h.Id));
+            
+            // Eğer merkezin editörleri listesinde değilse ve salonlara erişimi yoksa merkezi gösterme
+            if (!hasAccessFromHalls && !hasAccessFromDescription)
+                return null;
+            
+            // Eğer merkezin editörleri listesindeyse tüm salonları göster, değilse sadece erişimi olan salonları göster
+            if (!hasAccessFromDescription)
+            {
+                centerHallsList = centerHallsList.Where(h => accessibleSet.Contains(h.Id)).ToList();
+            }
         }
         // SuperAdmin ve Viewer için tüm salonları göster (filtreleme yok)
 
@@ -89,5 +105,23 @@ public sealed class GetCenterDetailQueryHandler
             CreatedAt = center.CreatedAt,
             Halls = hallsWithSchedules
         };
+    }
+
+    private static List<Guid> ParseAllowedUserIds(string description)
+    {
+        if (string.IsNullOrWhiteSpace(description))
+            return new List<Guid>();
+
+        var match = Regex.Match(description, @"Erişim İzni Olan Editörler:\s*\[([^\]]+)\]");
+        if (!match.Success)
+            return new List<Guid>();
+
+        var idsString = match.Groups[1].Value;
+        return idsString.Split(',')
+            .Select(id => id.Trim())
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Where(id => Guid.TryParse(id, out _))
+            .Select(Guid.Parse)
+            .ToList();
     }
 }
