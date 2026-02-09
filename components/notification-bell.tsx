@@ -17,7 +17,7 @@ import { getRequests } from "@/lib/api/requests";
 import type { MessageDto } from "@/lib/api/messages";
 import type { Request } from "@/lib/types";
 import { sanitizeText } from "@/lib/utils/sanitize";
-import { canEdit, isViewer as isViewerRole } from "@/lib/utils/role";
+import { canEdit, isViewer as isViewerRole, isMerkezSorumlusu } from "@/lib/utils/role";
 
 type Notification = {
   id: string;
@@ -135,6 +135,28 @@ export function NotificationBell() {
               .slice(0, 10); // En fazla 10 yeni talep bildirimi
             
             for (const req of sortedNewRequests) {
+              const notificationId = `new-request-${req.id}`;
+              allNotifications.push({
+                id: notificationId,
+                type: "request",
+                title: "Yeni Talep",
+                message: `${req.hallName || "Bir salon"} için yeni talep oluşturuldu`,
+                date: new Date(req.createdAt),
+                read: readIds.has(notificationId),
+                link: `/dashboard/talepler`,
+              });
+            }
+          } else if (isMerkezSorumlusu(user.role)) {
+            // Merkez Sorumlusu: API zaten kendi merkezlerinin taleplerini döndürüyor; yeni bekleyen talepleri göster
+            const newPendingRequests = requests
+              .filter((req) => {
+                const reqDate = new Date(req.createdAt);
+                const hoursDiff = (Date.now() - reqDate.getTime()) / (1000 * 60 * 60);
+                return req.status === "Pending" && hoursDiff <= 24;
+              })
+              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              .slice(0, 10);
+            for (const req of newPendingRequests) {
               const notificationId = `new-request-${req.id}`;
               allNotifications.push({
                 id: notificationId,

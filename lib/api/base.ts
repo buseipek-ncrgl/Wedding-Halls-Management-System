@@ -183,7 +183,8 @@ export async function fetchApi<T>(path: string, options: FetchOptions = {}): Pro
           contentType,
         });
       } else {
-        // Diğer hataları console'a yazdır (daha detaylı)
+        // Diğer hataları console'a yazdır (mesaj önce string olarak, böylece "Object" yerine metin görünür)
+        const responseSnippet = body?.message ?? (typeof text === "string" && text.length > 0 ? text.slice(0, 300) : "(boş yanıt)");
         const errorDetails = {
           url,
           method: init.method || "GET",
@@ -198,7 +199,7 @@ export async function fetchApi<T>(path: string, options: FetchOptions = {}): Pro
           requestBody: requestBody ? JSON.stringify(requestBody, null, 2) : "(none)",
         };
         
-        console.error(`API Error [${res.status}]:`, errorDetails);
+        console.error(`API Error [${res.status}]: ${message}. Sunucu yanıtı: ${responseSnippet}`, errorDetails);
         
         // Eğer validation hatası varsa, kullanıcıya daha anlaşılır mesaj göster
         if (res.status === 400 && errors && errors.length > 0) {

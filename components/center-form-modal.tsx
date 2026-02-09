@@ -119,15 +119,22 @@ export function CenterFormModal({
   const [imagePreview, setImagePreview] = useState("");
   const [selectedTechnicalDetails, setSelectedTechnicalDetails] = useState<Set<string>>(new Set());
   const [selectedEditorIds, setSelectedEditorIds] = useState<Set<string>>(new Set());
+  const [selectedMerkezSorumlusuIds, setSelectedMerkezSorumlusuIds] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editors, setEditors] = useState<User[]>([]);
+  const [merkezSorumlulari, setMerkezSorumlulari] = useState<User[]>([]);
 
   useEffect(() => {
     if (open) {
       getAllUsers()
-        .then((users) => users.filter((u) => u.role === "Editor"))
-        .then(setEditors)
-        .catch(() => setEditors([]));
+        .then((users) => {
+          setEditors(users.filter((u) => u.role === "Editor"));
+          setMerkezSorumlulari(users.filter((u) => u.role === "MerkezSorumlusu"));
+        })
+        .catch(() => {
+          setEditors([]);
+          setMerkezSorumlulari([]);
+        });
     }
   }, [open]);
 
@@ -139,31 +146,38 @@ export function CenterFormModal({
         let description = initialCenter.description || "";
         let technicalDetails = "";
         let allowedUserIds: string[] = [];
+        let merkezSorumlusuIds: string[] = [];
         
         const capacityMatch = description.match(/Toplam Kapasite:\s*(\d+)/);
         if (capacityMatch) {
           capacity = parseInt(capacityMatch[1], 10);
           description = description.replace(/\n\nToplam Kapasite:\s*\d+.*/, "").trim();
         }
-        const techMatch = description.match(/Teknik Özellikler:\s*(.+?)(?:\n\nErişim İzni Olan Editörler:|$)/s);
+        const techMatch = description.match(/Teknik Özellikler:\s*(.+?)(?:\n\nErişim İzni Olan Editörler:|\n\nMerkez Sorumluları:|$)/s);
         if (techMatch) {
           technicalDetails = techMatch[1].trim();
           description = description.replace(/Teknik Özellikler:.*/, "").trim();
         }
         
-        // Erişim izni olan editörleri parse et
-        // Format: "Erişim İzni Olan Editörler: [id1,id2,id3]"
         const editorMatch = initialCenter.description.match(/Erişim İzni Olan Editörler:\s*\[([^\]]+)\]/);
         if (editorMatch) {
-          // Virgülle ayrılmış ID'leri parse et
           allowedUserIds = editorMatch[1]
             .split(',')
             .map(id => id.trim().replace(/['"]/g, ''))
             .filter(id => id.length > 0);
         }
+        const merkezMatch = initialCenter.description.match(/Merkez Sorumluları:\s*\[([^\]]+)\]/);
+        if (merkezMatch) {
+          merkezSorumlusuIds = merkezMatch[1]
+            .split(',')
+            .map(id => id.trim().replace(/['"]/g, ''))
+            .filter(id => id.length > 0);
+        }
         
-        // Description'dan editor bilgisini temizle
-        description = description.replace(/\n\nErişim İzni Olan Editörler:.*/, "").trim();
+        description = description
+          .replace(/\n\nErişim İzni Olan Editörler:.*/, "")
+          .replace(/\n\nMerkez Sorumluları:.*/, "")
+          .trim();
 
         setForm({
           name: initialCenter.name || "",
@@ -177,6 +191,7 @@ export function CenterFormModal({
         setImagePreview(initialCenter.imageUrl || "");
         setSelectedTechnicalDetails(parseTechnicalDetails(technicalDetails));
         setSelectedEditorIds(new Set(allowedUserIds));
+        setSelectedMerkezSorumlusuIds(new Set(merkezSorumlusuIds));
       } else {
         setForm({
           ...emptyForm,
@@ -187,6 +202,7 @@ export function CenterFormModal({
         setImagePreview("");
         setSelectedTechnicalDetails(new Set());
         setSelectedEditorIds(new Set());
+        setSelectedMerkezSorumlusuIds(new Set());
       }
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -222,26 +238,88 @@ export function CenterFormModal({
         canvas.height = height;
         const ctx = canvas.getContext("2d");
         if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          let quality = 0.3;
-          let base64String = canvas.toDataURL("image/jpeg", quality);
-          let attempts = 0;
-          while (base64String.length > 1000 && attempts < 5) {
-            const scale = Math.sqrt(900 / base64String.length);
-            width = Math.max(50, Math.floor(width * scale));
-            height = Math.max(50, Math.floor(height * scale));
+          // Backend 1000 karakter limitine sahip - kaliteyi koruyarak optimize et
+          // İlk olarak makul bir boyuta küçült (kaliteyi koruyarak)
+          const INITIAL_MAX_SIZE = 800; // Daha büyük başlangıç boyutu
+          if (width > INITIAL_MAX_SIZE || height > INITIAL_MAX_SIZE) {
+            const scale = Math.min(INITIAL_MAX_SIZE / width, INITIAL_MAX_SIZE / height);
+            width = Math.floor(width * scale);
+            height = Math.floor(height * scale);
             canvas.width = width;
             canvas.height = height;
+          }
+          
+          // PNG'lerde şeffaf arka plan için beyaz arka plan ekle
+          ctx.fillStyle = "#FFFFFF";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Yüksek kalite ile başla (0.85)
+          let quality = 0.85;
+          let base64String = canvas.toDataURL("image/jpeg", quality);
+          let attempts = 0;
+          const MAX_ATTEMPTS = 20;
+          
+          // Önce kaliteyi hafifçe düşürerek dene (kaliteyi korumaya çalış)
+          while (base64String.length > 1000 && attempts < MAX_ATTEMPTS && quality > 0.6) {
+            attempts++;
+            quality = Math.max(0.6, quality - 0.05); // 0.85'ten 0.6'ya kadar kademeli düşür
+            base64String = canvas.toDataURL("image/jpeg", quality);
+            if (base64String.length <= 1000) break;
+          }
+          
+          // Kalite yeterli değilse boyutu hafifçe küçült (kaliteyi koruyarak)
+          if (base64String.length > 1000 && quality >= 0.6) {
+            const targetRatio = Math.sqrt(950 / base64String.length); // 950 karakter hedefi
+            const scale = Math.max(0.7, Math.min(0.95, targetRatio)); // %70-95 arası küçültme
+            width = Math.max(300, Math.floor(width * scale)); // Minimum 300px (kalite için)
+            height = Math.max(300, Math.floor(height * scale));
+            canvas.width = width;
+            canvas.height = height;
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0, width, height);
             base64String = canvas.toDataURL("image/jpeg", quality);
-            attempts++;
           }
+          
+          // Hala çok uzunsa kaliteyi biraz daha düşür ama çok değil
+          if (base64String.length > 1000 && quality > 0.5) {
+            quality = 0.5;
+            base64String = canvas.toDataURL("image/jpeg", quality);
+          }
+          
+          // Son çare: Boyutu biraz daha küçült ama kaliteyi koru
           if (base64String.length > 1000) {
-            toast.error("Görsel çok büyük. Lütfen görsel URL'i kullanın veya daha küçük bir görsel seçin.");
-            setForm((p) => ({ ...p, imageUrl: "" }));
-            setImagePreview("");
-            return;
+            const scale = 0.8; // %20 küçült
+            width = Math.max(250, Math.floor(width * scale));
+            height = Math.max(250, Math.floor(height * scale));
+            canvas.width = width;
+            canvas.height = height;
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, width, height);
+            base64String = canvas.toDataURL("image/jpeg", quality);
           }
+          
+          // Çok nadir durum: Son çare küçük boyut ama kaliteyi mümkün olduğunca koru
+          if (base64String.length > 1000) {
+            width = 400;
+            height = 400;
+            canvas.width = width;
+            canvas.height = height;
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, width, height);
+            quality = Math.max(0.4, quality); // Minimum 0.4 kalite
+            base64String = canvas.toDataURL("image/jpeg", quality);
+          }
+          
+          // Son kontrol: Eğer hala çok uzunsa, kullanıcıya URL kullanmasını öner
+          if (base64String.length > 1000) {
+            toast.warning("Görsel optimize edildi ancak hala büyük. Görsel URL'i kullanmanız önerilir.");
+          }
+          
           setForm((p) => ({ ...p, imageUrl: base64String }));
           setImagePreview(base64String);
         }
@@ -286,6 +364,11 @@ export function CenterFormModal({
       const editorIdsArray = Array.from(selectedEditorIds);
       if (editorIdsArray.length > 0) {
         description = `${description}\n\nErişim İzni Olan Editörler: [${editorIdsArray.join(',')}]`.trim();
+      }
+      // Merkez sorumlularını description'a ekle
+      const merkezSorumlusuArray = Array.from(selectedMerkezSorumlusuIds);
+      if (merkezSorumlusuArray.length > 0) {
+        description = `${description}\n\nMerkez Sorumluları: [${merkezSorumlusuArray.join(',')}]`.trim();
       }
 
       const centerData: CreateCenterData = {
@@ -501,7 +584,39 @@ export function CenterFormModal({
                   )}
                 </div>
                 <p className="text-[10px] sm:text-xs text-muted-foreground">
-                  Bu merkeze erişim izni olan editörleri seçin.
+                  Bu merkeze erişim izni olan editörleri seçin (düzenleme yapabilir).
+                </p>
+              </div>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-xs sm:text-sm">Merkez Sorumluları</Label>
+                <div className="space-y-1.5 sm:space-y-2 rounded-lg border p-2 sm:p-3 max-h-40 sm:max-h-48 overflow-y-auto">
+                  {merkezSorumlulari.length === 0 ? (
+                    <p className="text-xs sm:text-sm text-muted-foreground">Henüz merkez sorumlusu kullanıcı yok.</p>
+                  ) : (
+                    merkezSorumlulari.map((u) => (
+                      <div key={u.id} className="flex items-center space-x-1.5 sm:space-x-2">
+                        <Checkbox
+                          id={`center-ms-${u.id}`}
+                          checked={selectedMerkezSorumlusuIds.has(u.id)}
+                          onCheckedChange={(checked) => {
+                            const next = new Set(selectedMerkezSorumlusuIds);
+                            if (checked) next.add(u.id);
+                            else next.delete(u.id);
+                            setSelectedMerkezSorumlusuIds(next);
+                          }}
+                        />
+                        <label
+                          htmlFor={`center-ms-${u.id}`}
+                          className="text-xs sm:text-sm font-medium leading-none cursor-pointer flex-1 break-words"
+                        >
+                          {u.name} ({u.email})
+                        </label>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
+                  Bu merkezi sadece görüntüleyebilecek merkez sorumlularını seçin (düzenleme yapamaz).
                 </p>
               </div>
             </div>

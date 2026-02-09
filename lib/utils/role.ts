@@ -17,8 +17,12 @@ export function isViewer(role: UserRole | null | undefined): boolean {
   return role === "Viewer";
 }
 
+export function isMerkezSorumlusu(role: UserRole | null | undefined): boolean {
+  return role === "MerkezSorumlusu";
+}
+
 /**
- * Check if user can edit (SuperAdmin or Editor)
+ * Check if user can edit (SuperAdmin or Editor). MerkezSorumlusu is view-only.
  */
 export function canEdit(role: UserRole | null | undefined): boolean {
   return role === "SuperAdmin" || role === "Editor";
@@ -39,7 +43,7 @@ export function canManageSchedules(role: UserRole | null | undefined): boolean {
 }
 
 /**
- * Parse allowed user IDs from center description
+ * Parse allowed Editor user IDs from center description
  */
 export function parseAllowedUserIds(description: string): string[] {
   if (!description) return [];
@@ -54,26 +58,33 @@ export function parseAllowedUserIds(description: string): string[] {
 }
 
 /**
+ * Parse Merkez Sorumlusu user IDs from center description
+ */
+export function parseMerkezSorumlusuIds(description: string): string[] {
+  if (!description) return [];
+  const match = description.match(/Merkez Sorumluları:\s*\[([^\]]+)\]/);
+  if (match) {
+    return match[1]
+      .split(',')
+      .map(id => id.trim().replace(/['"]/g, ''))
+      .filter(id => id.length > 0);
+  }
+  return [];
+}
+
+/**
  * Check if user has access to a center
- * SuperAdmin always has access
- * Editor has access if their ID is in the center's allowedUserIds
+ * SuperAdmin and Viewer (for listing) have access; Editor/MerkezSorumlusu need to be in the center's lists
  */
 export function canAccessCenter(
   userRole: UserRole | null | undefined,
   userId: string | null | undefined,
   centerDescription: string | null | undefined
 ): boolean {
-  // SuperAdmin always has access
   if (isSuperAdmin(userRole)) return true;
-  
-  // Viewer never has access
   if (isViewer(userRole)) return false;
-  
-  // Editor needs to be in the allowed list
-  if (isEditor(userRole) && userId && centerDescription) {
-    const allowedIds = parseAllowedUserIds(centerDescription);
-    return allowedIds.includes(userId);
-  }
-  
+  if (!userId || !centerDescription) return false;
+  if (isEditor(userRole)) return parseAllowedUserIds(centerDescription).includes(userId);
+  if (isMerkezSorumlusu(userRole)) return parseMerkezSorumlusuIds(centerDescription).includes(userId);
   return false;
 }

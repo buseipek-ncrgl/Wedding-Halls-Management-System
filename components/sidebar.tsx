@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/lib/user-context";
-import { isSuperAdmin, isEditor as isEditorRole, canManageHalls } from "@/lib/utils/role";
+import { isSuperAdmin, isEditor as isEditorRole, isMerkezSorumlusu, canManageHalls } from "@/lib/utils/role";
 import { Badge } from "@/components/ui/badge";
 import {
   Building2,
@@ -30,14 +30,14 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
  * Align with lib/dashboard-routes EDITOR_ONLY_PATHS.
  */
 const navItems = [
-  // { href: "/dashboard", label: "Ana Sayfa", icon: Home, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
-  // { href: "/dashboard/takvim", label: "Takvim", icon: Calendar, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
-  { href: "/dashboard/salonlar", label: "Salonlar", icon: Building2, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
+  // { href: "/dashboard", label: "Ana Sayfa", icon: Home, roles: ["SuperAdmin", "Editor", "Viewer", "MerkezSorumlusu"] as const },
+  // { href: "/dashboard/takvim", label: "Takvim", icon: Calendar, roles: ["SuperAdmin", "Editor", "Viewer", "MerkezSorumlusu"] as const },
+  { href: "/dashboard/salonlar", label: "Salonlar", icon: Building2, roles: ["SuperAdmin", "Editor", "Viewer", "MerkezSorumlusu"] as const },
   // { href: "/dashboard/talep-et", label: "Talep Et", icon: Plus, roles: ["Viewer"] as const },
-  // { href: "/dashboard/mesajlar", label: "Mesajlar", icon: MessageSquare, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
-  // { href: "/dashboard/talepler", label: "Talepler", icon: FileText, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
+  // { href: "/dashboard/mesajlar", label: "Mesajlar", icon: MessageSquare, roles: ["SuperAdmin", "Editor", "Viewer", "MerkezSorumlusu"] as const },
+  // { href: "/dashboard/talepler", label: "Talepler", icon: FileText, roles: ["SuperAdmin", "Editor", "Viewer", "MerkezSorumlusu"] as const },
   // { href: "/dashboard/kisiler", label: "Yönetim", icon: Users, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
-  { href: "/dashboard/ayarlar", label: "Ayarlar", icon: Settings, roles: ["SuperAdmin", "Editor", "Viewer"] as const },
+  { href: "/dashboard/ayarlar", label: "Ayarlar", icon: Settings, roles: ["SuperAdmin", "Editor", "Viewer", "MerkezSorumlusu"] as const },
 ];
 
 interface SidebarProps {
@@ -153,7 +153,7 @@ export function Sidebar({ open, onOpenChange, isMobile = false, onCollapsedChang
                   variant={isSuperAdmin(user.role) ? "default" : isEditorRole(user.role) ? "default" : "outline"}
                   className="text-[10px]"
                 >
-                  {isSuperAdmin(user.role) ? "Yönetici" : isEditorRole(user.role) ? "Editör" : "Viewer"}
+                  {isSuperAdmin(user.role) ? "Yönetici" : isEditorRole(user.role) ? "Editör" : isMerkezSorumlusu(user.role) ? "Merkez Sorumlusu" : "Viewer"}
                 </Badge>
               </div>
               <p className="truncate text-xs text-muted-foreground">

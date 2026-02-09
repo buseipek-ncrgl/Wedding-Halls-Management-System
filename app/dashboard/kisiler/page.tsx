@@ -37,9 +37,9 @@ export default function KisilerPage() {
     try {
       setLoading(true);
       const allUsers = await getAllUsers();
-      // Sadece Editor ve SuperAdmin'leri göster (Viewer'ları hariç tut)
+      // Editor, MerkezSorumlusu ve SuperAdmin'leri göster (Viewer'ları hariç tut)
       const filteredUsers = allUsers.filter(
-        (u) => u.role === "Editor" || u.role === "SuperAdmin"
+        (u) => u.role === "Editor" || u.role === "SuperAdmin" || u.role === "MerkezSorumlusu"
       );
       setUsers(filteredUsers);
     } catch (error) {
@@ -97,10 +97,15 @@ export default function KisilerPage() {
     );
   });
 
-  // Departmanlara göre grupla
+  // Departmanlara göre grupla (MerkezSorumlusu ayrı grupta)
   const usersByDepartment = filteredUsers.reduce(
     (acc, user) => {
-      // Department null, undefined veya geçersizse "Yönetim" olarak grupla
+      if (user.role === "MerkezSorumlusu") {
+        const deptName = "Merkez Sorumluları";
+        if (!acc[deptName]) acc[deptName] = [];
+        acc[deptName].push(user);
+        return acc;
+      }
       const dept = user.department !== undefined && user.department !== null 
         ? user.department 
         : -1;
@@ -108,9 +113,7 @@ export default function KisilerPage() {
         dept === -1 || !departmentNames[dept]
           ? "Yönetim"
           : departmentNames[dept];
-      if (!acc[deptName]) {
-        acc[deptName] = [];
-      }
+      if (!acc[deptName]) acc[deptName] = [];
       acc[deptName].push(user);
       return acc;
     },
@@ -158,9 +161,10 @@ export default function KisilerPage() {
         <div className="space-y-6">
           {Object.entries(usersByDepartment)
             .sort(([a], [b]) => {
-              // Yönetim'i en üste koy
               if (a === "Yönetim") return -1;
               if (b === "Yönetim") return 1;
+              if (a === "Merkez Sorumluları") return -1;
+              if (b === "Merkez Sorumluları") return 1;
               return a.localeCompare(b);
             })
             .map(([departmentName, departmentUsers]) => (
@@ -193,6 +197,10 @@ export default function KisilerPage() {
                               {user.role === "SuperAdmin" ? (
                                 <Badge variant="default" className="text-[10px]">
                                   Yönetici
+                                </Badge>
+                              ) : user.role === "MerkezSorumlusu" ? (
+                                <Badge variant="outline" className="text-[10px] bg-slate-100 text-slate-700 border-slate-200">
+                                  Merkez Sorumlusu
                                 </Badge>
                               ) : user.department !== undefined && user.department !== null && departmentNames[user.department] ? (
                                 <Badge

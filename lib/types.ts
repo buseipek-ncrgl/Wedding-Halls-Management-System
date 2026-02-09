@@ -1,5 +1,5 @@
-/** Backend-aligned: SuperAdmin = full access, Editor = limited admin, Viewer = read-only */
-export type UserRole = "SuperAdmin" | "Editor" | "Viewer";
+/** Backend-aligned: SuperAdmin = full access, Editor = limited admin, Viewer = read-only, MerkezSorumlusu = center view-only */
+export type UserRole = "SuperAdmin" | "Editor" | "Viewer" | "MerkezSorumlusu";
 
 /**
  * Backend WeddingHallDto. availability is mock-only (calendar-view); API uses Schedule[].
