@@ -25,49 +25,60 @@ public sealed class UpdateScheduleCommandHandler
         var existing = await _repository.GetByIdAsync(command.Id, ct);
         if (existing is null) return null;
 
-        // SuperAdmin tüm schedule'ları güncelleyebilir
-        // Editor için erişim kontrolü
-        if (command.CallerRole == "Editor" && command.CallerUserId.HasValue)
+        var isSuperAdmin = string.Equals(command.CallerRole, "SuperAdmin", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(command.CallerRole, "Admin", StringComparison.OrdinalIgnoreCase);
+
+        var isEditor = string.Equals(command.CallerRole, "Editor", StringComparison.OrdinalIgnoreCase);
+
+        if (isEditor)
         {
-            // 1. Merkez erişim kontrolü: Editor'ın salonun merkezine erişim izni olmalı
-            var hasAccess = await _hallAccessRepository.HasAccessAsync(command.WeddingHallId, command.CallerUserId.Value, ct);
-            if (!hasAccess)
+            if (!command.CallerUserId.HasValue)
             {
-                throw new UnauthorizedAccessException("Bu salona rezervasyon yapma yetkiniz bulunmamaktadır.");
+                throw new UnauthorizedAccessException("Kullanıcı kimliği doğrulanamadı.");
             }
 
-            // 2. EventType kontrolü: Sadece "Reserved" schedule'lar için ve EventType varsa kontrol yap
-            // "Available" schedule'lar için EventType kontrolü yapılmaz (çünkü Editor yeni rezervasyon oluşturabilir)
-            if (existing.Status == ScheduleStatus.Reserved && existing.EventType.HasValue)
+            var isOwner = existing.CreatedByUserId == command.CallerUserId.Value;
+
+            var sameDepartment =
+                command.CallerDepartment.HasValue &&
+                existing.EventType.HasValue &&
+                existing.EventType.Value == command.CallerDepartment.Value;
+
+            // Editor kendi kaydını veya kendi departmanına ait kaydı güncelleyebilir
+            if (!isOwner && !sameDepartment)
             {
-                // Editor'ın department'ı olmalı
-                if (!command.CallerDepartment.HasValue)
-                {
-                    throw new UnauthorizedAccessException("Editor kullanıcısının bir alan/departman atanmamış.");
-                }
-                
-                // Mevcut schedule'ın EventType'ı Editor'ın department'ı ile eşleşmeli
-                if (existing.EventType.Value != command.CallerDepartment.Value)
-                {
-                    throw new UnauthorizedAccessException("Bu etkinliği düzenleme yetkiniz bulunmamaktadır. Sadece kendi alanınızdaki etkinlikleri düzenleyebilirsiniz.");
-                }
+                throw new UnauthorizedAccessException(
+                    "Bu etkinliği düzenleme yetkiniz bulunmamaktadır. Yalnızca kendi oluşturduğunuz veya kendi alanınıza ait etkinlikleri düzenleyebilirsiniz.");
             }
-            
-            // 3. Yeni EventType eklenirken (Available -> Reserved), yeni EventType Editor'ın department'ı ile eşleşmeli
-            if (existing.Status == ScheduleStatus.Available && command.Status == ScheduleStatus.Reserved && command.EventType.HasValue)
+
+            // Available -> Reserved geçişinde seçilen yeni EventType,
+            // editor'ün department'ı ile eşleşmeli
+            if (command.CallerDepartment.HasValue &&
+                existing.Status == ScheduleStatus.Available &&
+                command.Status == ScheduleStatus.Reserved &&
+                command.EventType.HasValue &&
+                command.EventType.Value != command.CallerDepartment.Value)
             {
-                // Editor'ın department'ı olmalı
-                if (!command.CallerDepartment.HasValue)
-                {
-                    throw new UnauthorizedAccessException("Editor kullanıcısının bir alan/departman atanmamış.");
-                }
-                
-                // Yeni EventType Editor'ın department'ı ile eşleşmeli
-                if (command.EventType.Value != command.CallerDepartment.Value)
-                {
-                    throw new UnauthorizedAccessException("Bu etkinlik tipini oluşturma yetkiniz bulunmamaktadır. Sadece kendi alanınızdaki etkinlikleri oluşturabilirsiniz.");
-                }
+                throw new UnauthorizedAccessException(
+                    "Bu etkinlik tipini oluşturma yetkiniz bulunmamaktadır. Sadece kendi alanınızdaki etkinlikleri oluşturabilirsiniz.");
             }
+
+            // Reserved bir kaydı reserved olarak güncellerken,
+            // yeni EventType başka bir departmana çevrilmesin
+            if (command.CallerDepartment.HasValue &&
+                command.Status == ScheduleStatus.Reserved &&
+                command.EventType.HasValue &&
+                command.EventType.Value != command.CallerDepartment.Value)
+            {
+                throw new UnauthorizedAccessException(
+                    "Bu etkinlik tipini güncelleme yetkiniz bulunmamaktadır. Sadece kendi alanınıza ait etkinlik tiplerini kullanabilirsiniz.");
+            }
+
+            // Department yoksa sadece owner ise devam eder; yukarıda zaten kontrol edildi
+        }
+        else if (!isSuperAdmin)
+        {
+            throw new UnauthorizedAccessException("Bu etkinliği düzenleme yetkiniz bulunmamaktadır.");
         }
 
         var hasOverlap = await _repository.ExistsOverlapAsync(
@@ -77,6 +88,7 @@ public sealed class UpdateScheduleCommandHandler
             command.EndTime,
             command.Id,
             ct);
+
         if (hasOverlap)
             throw new InvalidOperationException("Bu saat aralığında aynı salon ve tarih için başka bir rezervasyon bulunmaktadır.");
 
@@ -88,6 +100,7 @@ public sealed class UpdateScheduleCommandHandler
         existing.EventType = command.EventType;
         existing.EventName = command.EventName;
         existing.EventOwner = command.EventOwner;
+
         await _repository.UpdateAsync(existing, ct);
 
         return new ScheduleDto

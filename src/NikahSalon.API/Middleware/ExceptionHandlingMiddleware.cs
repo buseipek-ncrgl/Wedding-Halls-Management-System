@@ -3,6 +3,7 @@ using System.Text.Json;
 using FluentValidation;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using NikahSalon.API.Models;
 
@@ -13,12 +14,18 @@ public sealed class ExceptionHandlingMiddleware
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
     private readonly IWebHostEnvironment _environment;
+    private readonly IReadOnlyList<string> _corsOrigins;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger, IWebHostEnvironment environment)
+    public ExceptionHandlingMiddleware(
+        RequestDelegate next,
+        ILogger<ExceptionHandlingMiddleware> logger,
+        IWebHostEnvironment environment,
+        IConfiguration configuration)
     {
         _next = next;
         _logger = logger;
         _environment = environment;
+        _corsOrigins = CorsHeadersHelper.ResolveAllowedOrigins(configuration);
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -97,6 +104,9 @@ public sealed class ExceptionHandlingMiddleware
         {
             return;
         }
+
+        // CORS: hata gövdesi yazılmadan önce (aksi halde tarayıcı "Failed to fetch" gösterir)
+        CorsHeadersHelper.TryAppendForRequest(context, _corsOrigins);
 
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)statusCode;

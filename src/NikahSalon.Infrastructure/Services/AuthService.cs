@@ -27,7 +27,7 @@ public sealed class AuthService : IAuthService
             return new LoginResult { Success = false, Message = "Invalid email or password." };
 
         var roles = await _userManager.GetRolesAsync(user);
-        var role = roles.FirstOrDefault() ?? "Viewer";
+        var role = SelectPrimaryRole(roles);
 
         var token = _jwt.GenerateToken(user.Id, user.Email ?? string.Empty, role);
         return new LoginResult
@@ -38,5 +38,21 @@ public sealed class AuthService : IAuthService
             Email = user.Email,
             Role = role
         };
+    }
+
+    private static string SelectPrimaryRole(IList<string> roles)
+    {
+        // Identity role order is not guaranteed.
+        // Pick a deterministic primary role so privileged users do not get downgraded in JWT.
+        if (roles.Any(r => string.Equals(r, "SuperAdmin", StringComparison.OrdinalIgnoreCase)))
+            return "SuperAdmin";
+        if (roles.Any(r => string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase)))
+            return "Admin";
+        if (roles.Any(r => string.Equals(r, "Editor", StringComparison.OrdinalIgnoreCase)))
+            return "Editor";
+        if (roles.Any(r => string.Equals(r, "Viewer", StringComparison.OrdinalIgnoreCase)))
+            return "Viewer";
+
+        return "Viewer";
     }
 }

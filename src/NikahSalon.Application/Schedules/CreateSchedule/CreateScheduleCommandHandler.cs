@@ -41,7 +41,7 @@ public sealed class CreateScheduleCommandHandler
 
         // Editor için erişim kontrolü: Editor sadece erişim hakkı olan salonlara rezervasyon yapabilir
         // SuperAdmin tüm salonlara rezervasyon yapabilir
-        if (command.CallerRole == "Editor" && command.CallerUserId.HasValue)
+        if (string.Equals(command.CallerRole, "Editor", StringComparison.OrdinalIgnoreCase) && command.CallerUserId.HasValue)
         {
             var hasAccess = await _hallAccessRepository.HasAccessAsync(command.WeddingHallId, command.CallerUserId.Value, ct);
             if (!hasAccess)

@@ -80,7 +80,7 @@ public sealed class RequestsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Viewer,Editor,SuperAdmin")]
+    [Authorize(Roles = "Viewer,Editor,SuperAdmin,Admin")]
     [EnableRateLimiting("WritePolicy")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -118,7 +118,7 @@ public sealed class RequestsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "Editor,Viewer,SuperAdmin,MerkezSorumlusu")]
+    [Authorize(Roles = "Editor,Viewer,SuperAdmin,Admin,MerkezSorumlusu")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(
         [FromQuery] int page = 1,
@@ -209,7 +209,7 @@ public sealed class RequestsController : ControllerBase
     }
 
     [HttpPut("{id:guid}/answer")]
-    [Authorize(Roles = "Editor")]
+    [Authorize(Roles = "Editor,Admin,SuperAdmin")]
     [EnableRateLimiting("WritePolicy")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -231,7 +231,7 @@ public sealed class RequestsController : ControllerBase
     }
 
     [HttpPut("{id:guid}/approve")]
-    [Authorize(Roles = "Editor,SuperAdmin")]
+    [Authorize(Roles = "Editor,SuperAdmin,Admin")]
     [EnableRateLimiting("WritePolicy")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -279,7 +279,7 @@ public sealed class RequestsController : ControllerBase
     }
 
     [HttpPut("{id:guid}/reject")]
-    [Authorize(Roles = "Editor,SuperAdmin")]
+    [Authorize(Roles = "Editor,SuperAdmin,Admin")]
     [EnableRateLimiting("WritePolicy")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -331,7 +331,7 @@ public sealed class RequestsController : ControllerBase
     }
 
     [HttpPut("{id:guid}/update")]
-    [Authorize(Roles = "Viewer,Editor,SuperAdmin")]
+    [Authorize(Roles = "Viewer,Editor,SuperAdmin,Admin")]
     [EnableRateLimiting("WritePolicy")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -377,9 +377,13 @@ public sealed class RequestsController : ControllerBase
             if (updated is null) return NotFound();
             return Ok(updated);
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
-            return Forbid();
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                success = false,
+                message = ex.Message
+            });
         }
         catch (InvalidOperationException ex)
         {
@@ -430,7 +434,7 @@ public sealed class RequestsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Editor,Viewer,SuperAdmin")]
+    [Authorize(Roles = "Editor,Viewer,SuperAdmin,Admin")]
     [EnableRateLimiting("WritePolicy")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -452,7 +456,7 @@ public sealed class RequestsController : ControllerBase
             if (req is null) return NotFound(new { success = false, message = "Request not found." });
 
             if (req.CreatedByUserId != userId)
-                return Forbid();
+                return StatusCode(StatusCodes.Status403Forbidden, new { success = false, message = "Sadece kendi taleplerinizi silebilirsiniz." });
 
             if (req.Status != NikahSalon.Domain.Enums.RequestStatus.Pending)
                 return BadRequest(new { success = false, message = "Sadece bekleyen talepler silinebilir." });

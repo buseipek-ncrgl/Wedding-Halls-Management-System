@@ -11,7 +11,7 @@ namespace NikahSalon.API.Controllers;
 
 [ApiController]
 [Route("api/v1/users")]
-[Authorize(Roles = "SuperAdmin")]
+[Authorize(Roles = "SuperAdmin,Admin")]
 public sealed class UsersController : ControllerBase
 {
     private readonly GetUsersQueryHandler _getUsersHandler;
