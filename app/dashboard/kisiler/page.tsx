@@ -37,9 +37,9 @@ export default function KisilerPage() {
     try {
       setLoading(true);
       const allUsers = await getAllUsers();
-      // Editor, MerkezSorumlusu ve SuperAdmin'leri göster (Viewer'ları hariç tut)
+      // Editor, MerkezSorumlusu ve yönetici rolleri (SuperAdmin/Admin) göster (Viewer'ları hariç tut)
       const filteredUsers = allUsers.filter(
-        (u) => u.role === "Editor" || u.role === "SuperAdmin" || u.role === "MerkezSorumlusu"
+        (u) => u.role === "Editor" || u.role === "SuperAdmin" || u.role === "Admin" || u.role === "MerkezSorumlusu"
       );
       setUsers(filteredUsers);
     } catch (error) {
@@ -194,7 +194,7 @@ export default function KisilerPage() {
                               {user.name}
                             </p>
                             <div className="flex flex-wrap items-center gap-1.5">
-                              {user.role === "SuperAdmin" ? (
+                              {user.role === "SuperAdmin" || user.role === "Admin" ? (
                                 <Badge variant="default" className="text-[10px]">
                                   Yönetici
                                 </Badge>

@@ -119,7 +119,7 @@ async function mockGetCurrentUser(): Promise<User> {
     const mockUser = MOCK_USERS[payload.email?.toLowerCase()];
     return {
       id: payload.userId,
-      name: payload.role === "Viewer" ? "Viewer User" : payload.role === "SuperAdmin" ? "Yönetici" : "Editor User",
+      name: payload.role === "Viewer" ? "Viewer User" : (payload.role === "SuperAdmin" || payload.role === "Admin") ? "Yönetici" : "Editor User",
       email: payload.email,
       role: payload.role as User["role"],
       department: mockUser?.department,

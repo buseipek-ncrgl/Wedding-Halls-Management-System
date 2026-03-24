@@ -6,7 +6,7 @@ import type { UserRole } from "@/lib/types";
  */
 
 export function isSuperAdmin(role: UserRole | null | undefined): boolean {
-  return role === "SuperAdmin";
+  return role === "SuperAdmin" || role === "Admin";
 }
 
 export function isEditor(role: UserRole | null | undefined): boolean {
@@ -25,21 +25,21 @@ export function isMerkezSorumlusu(role: UserRole | null | undefined): boolean {
  * Check if user can edit (SuperAdmin or Editor). MerkezSorumlusu is view-only.
  */
 export function canEdit(role: UserRole | null | undefined): boolean {
-  return role === "SuperAdmin" || role === "Editor";
+  return role === "SuperAdmin" || role === "Admin" || role === "Editor";
 }
 
 /**
  * Check if user can manage halls (only SuperAdmin)
  */
 export function canManageHalls(role: UserRole | null | undefined): boolean {
-  return role === "SuperAdmin";
+  return role === "SuperAdmin" || role === "Admin";
 }
 
 /**
  * Check if user can manage schedules (SuperAdmin or Editor)
  */
 export function canManageSchedules(role: UserRole | null | undefined): boolean {
-  return role === "SuperAdmin" || role === "Editor";
+  return role === "SuperAdmin" || role === "Admin" || role === "Editor";
 }
 
 /**

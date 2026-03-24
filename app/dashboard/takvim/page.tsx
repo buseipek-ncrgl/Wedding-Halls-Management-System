@@ -18,7 +18,7 @@ import { getRequests } from "@/lib/api/requests";
 import type { Schedule, WeddingHall, Request } from "@/lib/types";
 import type { Center } from "@/lib/api/centers";
 import { useUser } from "@/lib/user-context";
-import { canManageSchedules, isViewer as isViewerRole, canAccessCenter } from "@/lib/utils/role";
+import { canManageSchedules, isViewer as isViewerRole, canAccessCenter, isSuperAdmin as isPrivilegedAdmin } from "@/lib/utils/role";
 import {
   ChevronLeft,
   ChevronRight,
@@ -89,7 +89,7 @@ type ScheduleWithHall = Schedule & {
 export default function TakvimPage() {
   const { user } = useUser();
   const canEdit = canManageSchedules(user?.role);
-  const isSuperAdmin = user?.role === "SuperAdmin";
+  const isSuperAdmin = isPrivilegedAdmin(user?.role);
   const editorDepartment = user?.department; // Editor'ın alanı (0=Nikah, 1=Nişan, 2=Konser, 3=Toplantı, 4=Özel)
   
   // Debug: Editor department'ını logla
@@ -128,7 +128,7 @@ export default function TakvimPage() {
     }
   }, [scheduleDialogOpen, scheduleStatus, isSuperAdmin, editorDepartment, eventType]);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (options?: { suppressErrorToast?: boolean }): Promise<boolean> => {
     setLoading(true);
     try {
       const [h, centersData, requests] = await Promise.all([
@@ -219,8 +219,14 @@ export default function TakvimPage() {
       }
       console.log(`[Takvim] Total schedules: ${all.length}, Matched with requests: ${matchedCount}`);
       setSchedules(all);
+      return true;
     } catch (e) {
-      toast.error(toUserFriendlyMessage(e));
+      if (!options?.suppressErrorToast) {
+        toast.error(toUserFriendlyMessage(e));
+      } else {
+        console.error("[Takvim] refresh failed:", e);
+      }
+      return false;
     } finally {
       setLoading(false);
     }
@@ -1260,7 +1266,10 @@ export default function TakvimPage() {
                     setEventType(undefined);
                     setEventName("");
                     setEventOwner("");
-                    await refresh();
+                    await refresh().catch((refreshError) => {
+                      console.error("Schedule save succeeded but refresh failed:", refreshError);
+                      toast.warning("Kayıt kaydedildi, liste yenilenirken sorun oluştu. Sayfayı yenileyin.");
+                    });
                     setScheduleDialogOpen(false);
                   } catch (e) {
                     toast.error(toUserFriendlyMessage(e));
@@ -1431,8 +1440,11 @@ export default function TakvimPage() {
                     setScheduleToDelete(null);
                     // Silinen schedule'ı state'den de kaldır (hemen güncelleme için)
                     setSchedules((prev) => prev.filter((s) => s.id !== deletedId));
-                    // Backend'den yeniden yükle
-                    await refresh();
+                    // Backend'den yeniden yükle (silme başarılıyken refresh hatası "API yok" gibi yanlış mesaj vermesin)
+                    const refreshed = await refresh({ suppressErrorToast: true });
+                    if (!refreshed) {
+                      toast.warning("Silindi; liste sunucudan yenilenemedi. Sayfayı yenileyin.");
+                    }
                   } catch (e) {
                     toast.error(toUserFriendlyMessage(e));
                   }

@@ -110,10 +110,6 @@ export default function LoginPage() {
               {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
             </Button>
           </form>
-
-          <p className="mt-6 text-center text-xs text-muted-foreground">
-            Demo: viewer@nikahsalon.local / Viewer1! — editor@nikahsalon.local / Editor1!
-          </p>
         </CardContent>
       </Card>
     </div>

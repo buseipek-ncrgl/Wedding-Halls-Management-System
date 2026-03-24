@@ -11,5 +11,15 @@
             "database": "nikahsalon",
             "username": "enescikcik"
         }
-    ]
+    ],
+    "files.exclude": {
+        "**/out/**": true,
+        "**/.next/**": true,
+        "**/node_modules/**": true
+    },
+    "search.exclude": {
+        "**/out/**": true,
+        "**/.next/**": true,
+        "**/node_modules/**": true
+    }
 }

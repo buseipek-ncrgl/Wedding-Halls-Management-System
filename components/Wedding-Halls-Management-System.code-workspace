@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../Wedding-Halls-Management-System-Backend"
+		}
+	],
+	"settings": {
+		"sqltools.connections": [
+			{
+				"ssh": "Disabled",
+				"previewLimit": 50,
+				"server": "localhost",
+				"port": 5432,
+				"driver": "PostgreSQL",
+				"name": "NikahSalon DB",
+				"password": "your_password",
+				"database": "nikahsalon",
+				"username": "enescikcik"
+			}
+		]
+	}
+}

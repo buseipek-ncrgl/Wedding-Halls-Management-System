@@ -7,8 +7,44 @@ const getToken = (): string | null => {
   return sessionStorage.getItem(TOKEN_KEY);
 };
 
+const isJwtToken = (token: string): boolean => {
+  const parts = token.split(".");
+  return parts.length === 3 && parts.every((part) => part.length > 0);
+};
+
+const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
+  if (!isJwtToken(token)) return null;
+
+  try {
+    const payloadPart = token.split(".")[1];
+    // JWT payload is base64url encoded. Normalize before atob.
+    const normalized = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    return JSON.parse(atob(padded)) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+};
+
 const getBaseUrl = (): string => {
-  return process.env.NEXT_PUBLIC_API_URL ?? "";
+  const direct = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (direct) return direct;
+
+  const local = process.env.NEXT_PUBLIC_API_URL_LOCAL?.trim();
+  const prod = process.env.NEXT_PUBLIC_API_URL_PROD?.trim();
+
+  if (typeof window === "undefined") {
+    return prod || local || "";
+  }
+
+  const host = window.location.hostname.toLowerCase();
+  const isLocalHost = host === "localhost" || host === "127.0.0.1";
+
+  if (isLocalHost) {
+    return local || "http://localhost:5230";
+  }
+
+  return prod || local || "";
 };
 
 export type FetchOptions = RequestInit & { skipAuth?: boolean };
@@ -51,8 +87,8 @@ export async function fetchApi<T>(path: string, options: FetchOptions = {}): Pro
       headers["Authorization"] = `Bearer ${token}`;
       // Debug: Token'daki rol bilgisini kontrol et (sadece development'ta)
       if (process.env.NODE_ENV === "development") {
-        try {
-          const payload = JSON.parse(atob(token.split(".")[1]));
+        const payload = decodeJwtPayload(token);
+        if (payload) {
           // ASP.NET Core JWT'de rol claim'i farklı key'lerde olabilir
           const role = payload[`http://schemas.microsoft.com/ws/2008/06/identity/claims/role`] 
                     || payload[`role`] 
@@ -63,8 +99,8 @@ export async function fetchApi<T>(path: string, options: FetchOptions = {}): Pro
             console.log("🔍 Token Debug - Role found:", role);
             console.log("🔍 Token Debug - All claim keys:", Object.keys(payload));
           }
-        } catch (e) {
-          console.error("Token parse error:", e);
+        } else if (path.includes("/requests")) {
+          console.warn("Token debug skipped: token is not a valid JWT format.");
         }
       }
     }
@@ -170,8 +206,11 @@ export async function fetchApi<T>(path: string, options: FetchOptions = {}): Pro
         }
         // 401 hatalarını console'a yazdırma (normal durum - token yoksa)
       } else if (res.status === 403) {
-        // 403 (Forbidden) hataları için özel mesaj
-        if (!body || !body.message) {
+        // 403 + text/html: genelde IIS/Plesk (ModSecurity, WebDAV kalıntısı, WAF) — API'nin JSON yetki cevabı değil
+        if (contentType.includes("text/html")) {
+          message =
+            "Sunucu güvenlik katmanı (IIS/Plesk; çoğunlukla ModSecurity/WAF) PUT/DELETE isteğini engelliyor. Bu, uygulama rolüyle ilgili bir mesaj değildir. Plesk → Güvenlik → Web Application Firewall / ModSecurity’yi geçici kapatıp deneyin veya hosting desteğine “API için PUT/DELETE 403 HTML” diye bildirin.";
+        } else if (!body || !body.message) {
           message = "Bu işlem için yetkiniz bulunmamaktadır. Lütfen yöneticinizle iletişime geçin.";
         }
         console.error(`API Error [403 Forbidden]:`, {
@@ -181,6 +220,7 @@ export async function fetchApi<T>(path: string, options: FetchOptions = {}): Pro
           errors,
           responseBody: body ? JSON.stringify(body, null, 2) : text || "(empty)",
           contentType,
+          likelyHostingWaf: contentType.includes("text/html"),
         });
       } else {
         // Diğer hataları console'a yazdır (mesaj önce string olarak, böylece "Object" yerine metin görünür)
@@ -210,9 +250,22 @@ export async function fetchApi<T>(path: string, options: FetchOptions = {}): Pro
       throw new ApiError(message, errors, res.status);
     }
 
-    const contentType = res.headers.get("content-type");
-    if (contentType?.includes("application/json")) {
-      return res.json() as Promise<T>;
+    // 204/205: gövde yok; DELETE gibi endpoint'lerde res.json() patlamasın
+    if (res.status === 204 || res.status === 205) {
+      return undefined as unknown as Promise<T>;
+    }
+
+    const contentType = res.headers.get("content-type") ?? "";
+    if (contentType.includes("application/json")) {
+      const raw = await res.text();
+      if (!raw || !raw.trim()) {
+        return undefined as unknown as Promise<T>;
+      }
+      try {
+        return JSON.parse(raw) as T;
+      } catch {
+        throw new ApiError("Sunucu geçersiz JSON döndürdü.", undefined, res.status);
+      }
     }
     return undefined as unknown as Promise<T>;
   } catch (error) {

@@ -6,6 +6,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Building2, Eye, Edit, Trash2 } from "lucide-react";
 import type { Center } from "@/lib/api/centers";
+import { centerDetailPath } from "@/lib/dashboard-routes";
 
 interface CenterCardProps {
   center: Center;
@@ -49,7 +50,7 @@ export function CenterCard({ center, onEdit, onDelete }: CenterCardProps) {
       
       <CardFooter className="flex flex-col gap-2 border-t border-border bg-muted/30 p-3 sm:p-4">
         <div className="flex flex-col sm:flex-row gap-2 w-full">
-          <Link href={`/dashboard/salonlar/${center.id}`} className="flex-1 w-full sm:w-auto" prefetch={false}>
+          <Link href={centerDetailPath(center.id)} className="flex-1 w-full sm:w-auto" prefetch={false}>
             <Button
               variant="default"
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm"

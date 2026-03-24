@@ -12,6 +12,7 @@ import { getCenters, type Center } from "@/lib/api/centers";
 import { getAllUsers } from "@/lib/api/auth";
 import type { User } from "@/lib/types";
 import { toUserFriendlyMessage } from "@/lib/utils/api-error";
+import { centerDetailPath } from "@/lib/dashboard-routes";
 import { toast } from "sonner";
 import { Building2, ArrowLeft, Upload, X } from "lucide-react";
 import {
@@ -208,7 +209,7 @@ export default function NewHallPage() {
 
       await createHall(hallData);
       toast.success("Salon oluşturuldu.");
-      router.push(`/dashboard/salonlar/${form.centerId}`);
+      router.push(centerDetailPath(form.centerId));
     } catch (e) {
       toast.error(toUserFriendlyMessage(e));
     } finally {

@@ -105,8 +105,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const role = user?.role ?? null;
   const isAuthenticated = user !== null;
-  // SuperAdmin and Editor can edit (Editor = limited admin, SuperAdmin = full admin)
-  const isEditor = role === "Editor" || role === "SuperAdmin";
+  // SuperAdmin/Admin and Editor can edit (Editor = limited admin, Admin/SuperAdmin = full admin)
+  const isEditor = role === "Editor" || role === "SuperAdmin" || role === "Admin";
 
   return (
     <AuthContext.Provider

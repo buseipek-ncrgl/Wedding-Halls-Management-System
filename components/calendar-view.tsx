@@ -35,6 +35,7 @@ import {
   Filter,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { hallDetailPath } from "@/lib/dashboard-routes";
 import {
   Select,
   SelectContent,
@@ -779,7 +780,7 @@ export function CalendarView() {
                               <td className="sticky left-0 z-10 bg-card p-0.5 sm:p-1 md:p-1.5 lg:p-2 min-w-[70px] sm:min-w-[80px] md:min-w-[95px] lg:min-w-[130px] w-[70px] sm:w-[80px] md:w-[95px] lg:w-[130px] border-r border-border">
                                 <button
                                   type="button"
-                                  onClick={() => router.push(`/dashboard/${hall.id}`)}
+                                  onClick={() => router.push(hallDetailPath(hall.id))}
                                   className="text-left text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs xl:text-sm font-medium text-foreground hover:text-primary break-words w-full line-clamp-2 leading-tight"
                                   title={hall.name}
                                 >
@@ -840,7 +841,7 @@ export function CalendarView() {
                                         type="button"
                                         onClick={() =>
                                           !isBooked &&
-                                          router.push(`/dashboard/${hall.id}`)
+                                          router.push(hallDetailPath(hall.id))
                                         }
                                         className={cn(
                                           "mx-auto flex min-h-[22px] sm:min-h-[26px] md:min-h-[30px] lg:min-h-[38px] w-full max-w-[36px] sm:max-w-[40px] md:max-w-[48px] lg:max-w-[58px] items-center justify-center rounded-md px-0.5 sm:px-1 md:px-1.5 py-0.5 sm:py-1 md:py-1.5 text-[7px] sm:text-[8px] md:text-[9px] lg:text-[10px] font-medium leading-tight transition-colors",
@@ -893,7 +894,7 @@ export function CalendarView() {
                           <td className="sticky left-0 z-10 bg-card p-0.5 sm:p-1 md:p-1.5 lg:p-2 min-w-[70px] sm:min-w-[80px] md:min-w-[95px] lg:min-w-[130px] w-[70px] sm:w-[80px] md:w-[95px] lg:w-[130px] border-r border-border">
                             <button
                               type="button"
-                              onClick={() => router.push(`/dashboard/${hall.id}`)}
+                              onClick={() => router.push(hallDetailPath(hall.id))}
                               className="text-left text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs xl:text-sm font-medium text-foreground hover:text-primary break-words w-full line-clamp-2 leading-tight"
                               title={hall.name}
                             >
@@ -954,7 +955,7 @@ export function CalendarView() {
                                     type="button"
                                     onClick={() =>
                                       !isBooked &&
-                                      router.push(`/dashboard/${hall.id}`)
+                                      router.push(hallDetailPath(hall.id))
                                     }
                                     className={cn(
                                       "mx-auto flex min-h-[22px] sm:min-h-[26px] md:min-h-[30px] lg:min-h-[38px] w-full max-w-[36px] sm:max-w-[40px] md:max-w-[48px] lg:max-w-[58px] items-center justify-center rounded-md px-0.5 sm:px-1 md:px-1.5 py-0.5 sm:py-1 md:py-1.5 text-[7px] sm:text-[8px] md:text-[9px] lg:text-[10px] font-medium leading-tight transition-colors",

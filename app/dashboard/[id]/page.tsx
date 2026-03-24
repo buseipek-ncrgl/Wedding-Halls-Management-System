@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { notFound, useParams } from "next/navigation";
+import { notFound, useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +22,7 @@ import { getAllUsers } from "@/lib/api/auth";
 import type { User } from "@/lib/types";
 import { formatDescription } from "@/lib/utils/format-description";
 import { useUser } from "@/lib/user-context";
-import { isViewer, canManageHalls, canManageSchedules, canAccessCenter } from "@/lib/utils/role";
+import { isViewer, canManageHalls, canManageSchedules, canAccessCenter, isSuperAdmin as isPrivilegedAdmin } from "@/lib/utils/role";
 import type { WeddingHall, Schedule, Request } from "@/lib/types";
 import type { Center } from "@/lib/api/centers";
 import {
@@ -116,10 +116,11 @@ function formatTimeRange(s: Schedule): string {
 
 export default function HallDetailPage() {
   const params = useParams();
-  const id = params.id as string;
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") || (params.id as string);
   const { user } = useUser();
   const canEditSchedules = canManageSchedules(user?.role);
-  const isSuperAdmin = user?.role === "SuperAdmin";
+  const isSuperAdmin = isPrivilegedAdmin(user?.role);
   const editorDepartment = user?.department; // Editor'ın alanı (0=Nikah, 1=Nişan, 2=Konser, 3=Toplantı, 4=Özel)
   const [hall, setHall] = useState<WeddingHall | null>(null);
   const [center, setCenter] = useState<Center | null>(null);
@@ -141,7 +142,7 @@ export default function HallDetailPage() {
   const [weekOffset, setWeekOffset] = useState<number>(0); // Hafta navigasyonu için offset (0 = bugün, 1 = bir hafta sonra, -1 = bir hafta önce)
   const [reservationSearchQuery, setReservationSearchQuery] = useState<string>("");
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (options?: { suppressErrorToast?: boolean }): Promise<boolean> => {
     try {
       const [h, s, requests, allUsers] = await Promise.all([
         getHallById(id),
@@ -213,8 +214,14 @@ export default function HallDetailPage() {
       
       // Tüm schedule'ları göster (zaman çizelgesi için)
       setSchedules(schedulesWithRequests);
+      return true;
     } catch (e) {
-      toast.error(toUserFriendlyMessage(e));
+      if (!options?.suppressErrorToast) {
+        toast.error(toUserFriendlyMessage(e));
+      } else {
+        console.error("[Hall detail] load failed:", e);
+      }
+      return false;
     } finally {
       setLoading(false);
     }
@@ -250,6 +257,18 @@ export default function HallDetailPage() {
     return canAccessCenter(user?.role, user?.id, center.description);
   }, [isSuperAdmin, canEditSchedules, hall, center, user]);
 
+  // Reserved kayitlarda duzenleme yetkisi:
+  // - SuperAdmin: her zaman
+  // - Editor: merkeze erisimi olmali ve eventType kendi department'i ile eslesmeli
+  const canEditReservedSchedule = useCallback((schedule: Schedule): boolean => {
+    if (!canEditSchedules) return false;
+    if (!canAccessHallCenter()) return false;
+    if (isSuperAdmin) return true;
+    if (editorDepartment === undefined || editorDepartment === null) return false;
+    if (schedule.eventType === undefined || schedule.eventType === null) return false;
+    return schedule.eventType === editorDepartment;
+  }, [canEditSchedules, canAccessHallCenter, isSuperAdmin, editorDepartment]);
+
   // Dialog aç ve seçilen slot bilgilerini ayarla
   const handleCellClick = useCallback((dateString: string, timeSlot: string) => {
     if (!hall) return;
@@ -279,8 +298,8 @@ export default function HallDetailPage() {
           return;
         }
       }
-      // Kendine ait olmayan rezervasyonda sadece detay (takvim sayfasındaki gibi): düzenleme/silme yok
-      if (schedule && schedule.status === "Reserved" && !isSuperAdmin && user?.id && schedule.createdByUserId && schedule.createdByUserId !== user.id) {
+      // Reserved kayitlarda editor yalnizca kendi department'ini duzenleyebilir.
+      if (schedule && schedule.status === "Reserved" && !canEditReservedSchedule(schedule)) {
         setDetailDialogOpen(true);
         return;
       }
@@ -309,7 +328,7 @@ export default function HallDetailPage() {
       // Viewer için dolu schedule'larda detay dialog'u aç
       setDetailDialogOpen(true);
     }
-  }, [canEditSchedules, hall, isSuperAdmin, editorDepartment, canAccessHallCenter, user?.id]);
+  }, [canEditSchedules, hall, isSuperAdmin, editorDepartment, canAccessHallCenter, canEditReservedSchedule]);
 
   // Dialog açıldığında ve "Dolu" seçildiğinde Editor için department'ı otomatik ayarla
   useEffect(() => {
@@ -379,16 +398,6 @@ export default function HallDetailPage() {
       }
       
       if (selectedSchedule) {
-        // Editor için: Sadece kendi oluşturduğu schedule'ları güncelleyebilir
-        // SuperAdmin tüm schedule'ları güncelleyebilir
-        if (!isSuperAdmin && selectedSchedule.createdByUserId && user?.id) {
-          if (selectedSchedule.createdByUserId !== user.id) {
-            // Editor başkasının schedule'ını güncelleyemez
-            toast.error("Bu rezervasyonu düzenleme yetkiniz bulunmamaktadır. Sadece kendi oluşturduğunuz rezervasyonları düzenleyebilirsiniz.");
-            return;
-          }
-        }
-        
         // Mevcut schedule'ı güncelle
         await updateSchedule(selectedSchedule.id, {
           weddingHallId: hall.id,
@@ -424,7 +433,11 @@ export default function HallDetailPage() {
       setSelectedSchedule(null);
       setScheduleDialogOpen(false);
       
-      await load();
+      const reloaded = await load({ suppressErrorToast: true });
+      if (!reloaded) {
+        console.error("Schedule save succeeded but reload failed");
+        toast.warning("Kayıt kaydedildi, liste yenilenirken sorun oluştu. Sayfayı yenileyin.");
+      }
     } catch (e: any) {
       // 403 hatası için özel mesaj
       if (e?.status === 403) {
@@ -617,7 +630,7 @@ export default function HallDetailPage() {
                             Dolu
                           </Badge>
                           <div className="flex items-center gap-2 flex-1 sm:flex-initial">
-                            {canEditSchedules && (isSuperAdmin || reservation.createdByUserId === user?.id) && (
+                            {canEditSchedules && canEditReservedSchedule(reservation) && (
                               <>
                                 <Button
                                   variant="outline"
@@ -1116,8 +1129,8 @@ export default function HallDetailPage() {
             </div>
           )}
           <DialogFooter className="px-3 sm:px-6 pb-4 sm:pb-6 pt-3 sm:pt-4 border-t flex-shrink-0 bg-background flex-col sm:flex-row gap-2 sticky bottom-0">
-            {/* Düzenle / Sil sadece kendi rezervasyonunda veya SuperAdmin (takvim sayfasındaki gibi) */}
-            {canEditSchedules && selectedSchedule && (isSuperAdmin || selectedSchedule.createdByUserId === user?.id) && (
+            {/* Duzenle / Sil: SuperAdmin veya editor kendi department rezervasyonlari */}
+            {canEditSchedules && selectedSchedule && canEditReservedSchedule(selectedSchedule) && (
               <>
                 <Button
                   variant="outline"
@@ -1205,8 +1218,10 @@ export default function HallDetailPage() {
                     // Silinen schedule'ı state'den de kaldır (hemen güncelleme için)
                     setAllSchedules((prev) => prev.filter((s) => s.id !== deletedId));
                     setSchedules((prev) => prev.filter((s) => s.id !== deletedId));
-                    // Backend'den yeniden yükle
-                    await load();
+                    const reloaded = await load({ suppressErrorToast: true });
+                    if (!reloaded) {
+                      toast.warning("Silindi; liste sunucudan yenilenemedi. Sayfayı yenileyin.");
+                    }
                   } catch (e) {
                     toast.error(toUserFriendlyMessage(e));
                   }
@@ -1273,8 +1288,8 @@ export default function HallDetailPage() {
                       Dolu
                     </Badge>
                     <div className="flex items-center gap-2 flex-1 sm:flex-initial">
-                      {/* Düzenle/Sil sadece kendi rezervasyonunda veya SuperAdmin (takvim gibi) */}
-                      {canEditSchedules && (isSuperAdmin || reservation.createdByUserId === user?.id) && (
+                      {/* Duzenle/Sil: SuperAdmin veya editor kendi department rezervasyonlari */}
+                      {canEditSchedules && canEditReservedSchedule(reservation) && (
                         <>
                           <Button
                             variant="outline"

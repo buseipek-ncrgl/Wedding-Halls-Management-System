@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -35,9 +35,10 @@ import { notFound } from "next/navigation";
 
 export default function CenterDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useUser();
-  const centerId = params.id as string;
+  const centerId = searchParams.get("id") || (params.id as string);
   
   const [center, setCenter] = useState<Center | null>(null);
   const [halls, setHalls] = useState<WeddingHall[]>([]);

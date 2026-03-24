@@ -17,6 +17,15 @@ type ScheduleDto = {
   eventOwner?: string;
 };
 
+function normalizeTimeOnly(value: string): string {
+  const t = (value ?? "").trim();
+  if (!t) return "00:00:00";
+  if (/^\d{2}:\d{2}:\d{2}$/.test(t)) return t;
+  if (/^\d{2}:\d{2}$/.test(t)) return `${t}:00`;
+  // Fallback: API'ye en azindan parse edilebilir bir format gonder.
+  return t.length >= 8 ? t.slice(0, 8) : `${t}:00`;
+}
+
 function toSchedule(d: ScheduleDto): Schedule {
   return {
     id: d.id,
@@ -52,8 +61,8 @@ export async function createSchedule(data: UpdateScheduleData): Promise<Schedule
   const body: any = {
     weddingHallId: data.weddingHallId,
     date: data.date,
-    startTime: data.startTime,
-    endTime: data.endTime,
+    startTime: normalizeTimeOnly(data.startTime),
+    endTime: normalizeTimeOnly(data.endTime),
     status: data.status === "Available" ? 0 : 1,
   };
   
@@ -83,8 +92,8 @@ export async function updateSchedule(id: string, data: UpdateScheduleData): Prom
   const body = {
     weddingHallId: data.weddingHallId,
     date: data.date,
-    startTime: data.startTime,
-    endTime: data.endTime,
+    startTime: normalizeTimeOnly(data.startTime),
+    endTime: normalizeTimeOnly(data.endTime),
     status: data.status === "Available" ? 0 : 1,
     eventType: data.eventType,
     eventName: data.eventName,

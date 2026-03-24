@@ -119,7 +119,14 @@ export default function MessagesPage() {
 
     const displayName =
       (user.name && user.name.trim()) || user.email || "Kullanıcı";
-    const displayRole: UserRole = user.role === "SuperAdmin" ? "SuperAdmin" : user.role === "Editor" ? "Editor" : "Viewer";
+    const displayRole: UserRole =
+      user.role === "SuperAdmin" || user.role === "Admin"
+        ? "SuperAdmin"
+        : user.role === "Editor"
+          ? "Editor"
+          : user.role === "MerkezSorumlusu"
+            ? "MerkezSorumlusu"
+            : "Viewer";
 
     const message: Message = {
       id: Date.now().toString(),

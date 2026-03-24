@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,11 +10,13 @@ import { updateCenter, getCenterById, type UpdateCenterData } from "@/lib/api/ce
 import { toUserFriendlyMessage } from "@/lib/utils/api-error";
 import { toast } from "sonner";
 import { Building2, ArrowLeft } from "lucide-react";
+import { centerDetailPath } from "@/lib/dashboard-routes";
 
 export default function EditCenterPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const centerId = params.id as string;
+  const centerId = searchParams.get("id") || (params.id as string);
   
   const [form, setForm] = useState<UpdateCenterData & { capacity: number }>({
     name: "",
@@ -87,7 +89,7 @@ export default function EditCenterPage() {
 
       await updateCenter(centerId, centerData);
       toast.success("Merkez güncellendi.");
-      router.push(`/dashboard/salonlar/${centerId}`);
+      router.push(centerDetailPath(centerId));
     } catch (e) {
       toast.error(toUserFriendlyMessage(e));
     } finally {
@@ -109,7 +111,7 @@ export default function EditCenterPage() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.push(`/dashboard/salonlar/${centerId}`)}
+          onClick={() => router.push(centerDetailPath(centerId))}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
@@ -191,7 +193,7 @@ export default function EditCenterPage() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push(`/dashboard/salonlar/${centerId}`)}
+            onClick={() => router.push(centerDetailPath(centerId))}
             className="flex-1"
           >
             İptal
